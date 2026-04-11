@@ -1,0 +1,8 @@
+metric,value
+raw_file,Data.csv
+sample_start,1926-07-31
+sample_end,2026-01-31
+n_months,1195
+n_portfolios,6
+n_missing_values,0
+return_units,percent monthly returns
