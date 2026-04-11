@@ -1,6 +1,6 @@
 # FMA4200 Final Project
 
-This project analyzes six Kenneth French value-weighted portfolios using the course-provided `Data.csv` file. The reproducible setup in this folder now covers environment verification, data cleaning, baseline sanity checks, and the core univariate return-modeling stage for the six portfolios.
+This project analyzes six Kenneth French value-weighted portfolios using the course-provided `Data.csv` file. The reproducible setup in this folder now covers environment verification, data cleaning, baseline sanity checks, univariate return modeling, and exogenous predictive modeling with cached Fama-French monthly factors plus internally constructed fallback signals.
 
 ## Canonical Structure
 
@@ -32,6 +32,9 @@ The raw Kenneth French monthly value-weighted section reports returns in **perce
 - Data-processing report draft: `report/sections/02_data_source_processing.md`
 - Individual-modeling report draft: `report/sections/03_individual_returns_modeling.md`
 - Modeling appendix: `report/sections/appendix_individual_returns_modeling.md`
+- Cached Fama-French factors: `data/processed/fama_french_3f_monthly.csv`
+- Predictor panel: `data/processed/predictor_dataset_monthly.csv`
+- Predictor source summary: `data/processed/predictor_source_summary.csv`
 
 ## Reproducible Commands
 
@@ -53,6 +56,12 @@ Run only the individual portfolio modeling step:
 & 'd:\MG\anaconda3\python.exe' 'scripts\run_individual_modeling.py'
 ```
 
+Run only the predictive-modeling extension:
+
+```powershell
+& 'd:\MG\anaconda3\python.exe' 'scripts\run_predictive_modeling.py'
+```
+
 Run the full current pipeline:
 
 ```powershell
@@ -69,6 +78,10 @@ The current pipeline saves:
 - baseline portfolio figures,
 - per-portfolio univariate diagnostics and model summaries,
 - combined ARIMA and GARCH comparison tables, and
+- a cached Fama-French monthly factor file,
+- a monthly predictor dataset with lagged factor and internal signals,
+- per-portfolio predictive forecast plots, parameter tables, model summaries, and interpretations,
+- combined predictive comparison and forecast tables, and
 - report drafts for the data and individual-modeling sections.
 
 The canonical current output folder is `output/`.

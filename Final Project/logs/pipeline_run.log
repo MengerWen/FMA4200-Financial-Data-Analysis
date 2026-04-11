@@ -1,5 +1,5 @@
-2026-04-11 22:33:03,643 | INFO | Starting cleaning pipeline.
-2026-04-11 22:33:05,329 | INFO | Cleaning pipeline completed successfully.
-2026-04-11 22:33:05,329 | INFO | Saved cleaned data to D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\data\processed\monthly_portfolio_returns_clean.csv
-2026-04-11 22:33:05,329 | INFO | Saved sanity checks to D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\output\tables
-2026-04-11 22:33:05,329 | INFO | Saved figures to D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\output\figures
+2026-04-12 00:06:55,010 | INFO | Starting cleaning pipeline.
+2026-04-12 00:06:56,541 | INFO | Cleaning pipeline completed successfully.
+2026-04-12 00:06:56,541 | INFO | Saved cleaned data to D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\data\processed\monthly_portfolio_returns_clean.csv
+2026-04-12 00:06:56,541 | INFO | Saved sanity checks to D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\output\tables
+2026-04-12 00:06:56,541 | INFO | Saved figures to D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\output\figures

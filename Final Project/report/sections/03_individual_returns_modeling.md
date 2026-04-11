@@ -1,47 +1,40 @@
 # Modeling the Individual Portfolio Returns
 
-## Workflow
+## Univariate Benchmarks
 
-This section models each of the six value-weighted portfolio return series individually using the cleaned monthly dataset. For each portfolio, the pipeline saves a time-series plot, histogram-and-density plot, QQ plot, ACF/PACF, residual diagnostics, volatility-clustering diagnostics, ARIMA candidate comparison tables, a selected ARIMA summary, and a lightweight Gaussian GARCH(1,1) fit implemented with `scipy.optimize` because the `arch` package is unavailable in the required interpreter.
+Section 3 begins with the univariate benchmark workflow for each of the six cleaned monthly portfolio return series. Each series was examined with time-series plots, histogram-and-density plots, QQ plots, ACF/PACF, Jarque-Bera normality tests, ADF and KPSS stationarity checks, residual Ljung-Box diagnostics, and ARCH-LM tests. Those diagnostics support modeling the returns in levels while still showing clear non-normality and volatility clustering across the panel.
 
-## Distributional and Diagnostic Evidence
+The strongest Jarque-Bera rejection still appears in **Small HiBM**, while the most persistent volatility process remains **Small HiBM** with GARCH persistence **0.980**. Low-order ARIMA models remain sensible mean benchmarks, but the clearest remaining residual autocorrelation still shows up in **ME1 BM2, Small HiBM**, which motivates adding exogenous predictive information rather than relying only on own-history dynamics.
 
-The descriptive diagnostics indicate that return distributions are not well approximated by the Gaussian benchmark. The strongest Jarque-Bera rejection in this sample occurs for **Small HiBM**, and every portfolio exhibits nontrivial skewness or excess kurtosis. Stationarity tests support modeling returns in levels rather than prices: the series are monthly returns, ADF generally rejects a unit root, and KPSS results do not overturn the practical use of level ARIMA models.
+## Exogenous Predictors and Predictive Design
 
-The saved diagnostic artifacts for each portfolio are under:
+The predictive extension now augments the benchmark models with lagged exogenous predictors. In the current environment, the project was able to use **cached authoritative Fama-French monthly factors** merged to the same sample and stored locally for reproducibility. The authoritative factor block contributes lagged market excess return, SMB, HML, and the risk-free rate. The project also constructs internal fallback and supplemental signals from the six available portfolios, including lagged size and value spreads, a 12-month rolling market-volatility proxy, a 12-month market-momentum proxy, and a drawdown proxy. This design keeps the workflow usable even if future reruns cannot reach the external data source, because both the cached factor file and the internal predictors live inside the project folder.
 
-- `output/figures/individual_returns/<portfolio>/`
-- `output/tables/individual_returns/<portfolio>/`
-- `output/models/individual_returns/<portfolio>/`
+For each portfolio, three model classes are compared:
 
-## Mean-Model Selection
+1. The selected univariate ARIMA benchmark from the earlier step.
+2. An ARIMAX specification that keeps the same ARIMA order but adds lagged exogenous predictors.
+3. A predictive regression with lagged returns plus lagged exogenous predictors.
 
-AR, MA, and ARMA/ARIMA candidates were estimated with `statsmodels`. The selection rule was:
+Model comparison is explicit rather than informal. Full-sample fit is judged with AIC, BIC, residual Ljung-Box diagnostics, and the share of non-constant terms that are statistically significant at the 5% level. Forecast performance is judged with a 120-month expanding-window exercise using one-step-ahead monthly refits. The main out-of-sample metrics are RMSE, MAE, and directional accuracy.
 
-1. Use ADF and KPSS evidence to decide whether differenced candidates are even needed.
-2. Fit a small, interpretable ARIMA grid with orders up to two autoregressive and two moving-average terms.
-3. Compare candidates on AIC and BIC.
-4. Prefer models whose residual Ljung-Box p-value at lag 12 is at least 0.05 and whose dynamic parameters are mostly statistically significant when such terms are present.
-5. Break ties in favor of the simpler specification.
+## Predictive Results
 
-This rule is intentionally conservative because monthly equity returns often contain much weaker mean predictability than volatility predictability. In practice, the selected ARIMA models are low-order and in some cases close to white-noise benchmarks, which is consistent with the financial-return literature reviewed in the introduction.
+The most common preferred predictive family across the six portfolios is **Predictive regression with lagged factors and internal signals**. Out-of-sample gains are modest rather than dramatic, which is consistent with the literature on return predictability at the monthly horizon. Even so, **2 of 6** portfolios show an RMSE improvement relative to the benchmark when the best predictive extension is used. The strongest improvement occurs for **Big HiBM**, where the preferred predictive model changes RMSE by **5.00%** relative to the benchmark.
 
-Residual diagnostics also show that mean dynamics are not captured equally well across all portfolios. The clearest remaining residual autocorrelation at lag 12 appears in **ME1 BM2, Small HiBM**, so those selected ARIMA specifications should be read as reasonable low-order benchmarks rather than fully satisfactory final mean models.
+These results should be interpreted cautiously. The predictive models add economic structure and sometimes improve forecast ranking or directional information, but the benchmark ARIMA models remain difficult to beat consistently. That pattern is informative in itself: the conditional mean of long-run monthly portfolio returns appears only weakly predictable, while the stronger and more stable evidence in the project still lies in distributional shape and conditional volatility.
 
-The combined comparison table is saved at `output/tables/individual_returns/portfolio_model_comparison_summary.csv`.
+## Saved Outputs
 
-## Volatility Modeling
+The predictive-modeling artifacts are saved under:
 
-A Gaussian GARCH(1,1) model with constant mean was estimated separately for each portfolio using a constrained parameterization and `scipy.optimize.minimize`. This hand-rolled approach is more limited than the unavailable `arch` package, especially for formal inference and richer specifications, but it is stable enough here to provide a reproducible volatility benchmark. The key use of the GARCH fits is to measure volatility persistence and to check whether standardized residuals show weaker ARCH effects than the raw series.
+- `data/processed/predictor_dataset_monthly.csv`
+- `data/processed/predictor_source_summary.csv`
+- `output/figures/predictive_individual_returns/<portfolio>/`
+- `output/tables/predictive_individual_returns/<portfolio>/`
+- `output/models/predictive_individual_returns/<portfolio>/`
+- `output/tables/predictive_individual_returns/predictive_model_summary.csv`
+- `output/tables/predictive_individual_returns/predictive_forecast_metrics.csv`
+- `output/tables/predictive_individual_returns/predictive_forecasts.csv`
 
-The most persistent volatility process in the current run is **Small HiBM**, with alpha + beta = **0.980**. That level of persistence is economically plausible for long samples of monthly equity data and supports the inclusion of volatility-focused models in the project.
-
-The combined GARCH summary is saved at `output/tables/individual_returns/portfolio_garch_summary.csv`.
-
-## Cross-Portfolio Interpretation
-
-The portfolio with the highest average monthly return remains **Small HiBM**, at **1.420%** per month. Across the six portfolios, the mean-model evidence is modest, while the volatility-model evidence is stronger. That pattern supports an interpretation in which the conditional mean of monthly portfolio returns is only weakly predictable from its own history, but conditional risk is more persistent and structured.
-
-Overall, the Section 3 evidence points to three conclusions. First, the return series are heavy tailed enough that normality-based intuition should be treated carefully. Second, low-order ARIMA models are adequate as mean benchmarks, but they do not reveal strong standalone predictability. Third, volatility clustering is real enough to justify GARCH-type modeling, even at the monthly frequency. These results set up the next project stages naturally: exogenous predictors for the conditional mean and multivariate dependence modeling for trading strategies.
-
-Portfolio-by-portfolio interpretations and the denser output inventory are moved to the appendix file `report/sections/appendix_individual_returns_modeling.md`.
+The appendix extends the portfolio-by-portfolio notes with predictive-model selections, key terms, and benchmark-versus-predictive forecast comparisons.

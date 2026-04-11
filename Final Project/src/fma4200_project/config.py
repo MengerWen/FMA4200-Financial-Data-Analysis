@@ -30,6 +30,9 @@ PIPELINE_LOG_PATH = LOGS_DIR / "pipeline_run.log"
 CLEAN_PERCENT_DATA_PATH = PROCESSED_DATA_DIR / "monthly_portfolio_returns_clean.csv"
 CLEAN_DECIMAL_DATA_PATH = PROCESSED_DATA_DIR / "monthly_portfolio_returns_decimal.csv"
 DATA_DICTIONARY_PATH = PROCESSED_DATA_DIR / "data_dictionary.csv"
+FAMA_FRENCH_FACTORS_PATH = PROCESSED_DATA_DIR / "fama_french_3f_monthly.csv"
+PREDICTOR_DATASET_PATH = PROCESSED_DATA_DIR / "predictor_dataset_monthly.csv"
+PREDICTOR_SOURCE_SUMMARY_PATH = PROCESSED_DATA_DIR / "predictor_source_summary.csv"
 
 DATE_COVERAGE_PATH = TABLES_DIR / "date_coverage_check.csv"
 DUPLICATE_CHECK_PATH = TABLES_DIR / "duplicate_check.csv"
@@ -48,16 +51,23 @@ MODELS_README_PATH = MODELS_DIR / "README.md"
 INDIVIDUAL_FIGURES_DIR = FIGURES_DIR / "individual_returns"
 INDIVIDUAL_TABLES_DIR = TABLES_DIR / "individual_returns"
 INDIVIDUAL_MODELS_DIR = MODELS_DIR / "individual_returns"
+PREDICTIVE_FIGURES_DIR = FIGURES_DIR / "predictive_individual_returns"
+PREDICTIVE_TABLES_DIR = TABLES_DIR / "predictive_individual_returns"
+PREDICTIVE_MODELS_DIR = MODELS_DIR / "predictive_individual_returns"
 
 SECTION_03_PATH = REPORT_SECTIONS_DIR / "03_individual_returns_modeling.md"
 APPENDIX_INDIVIDUAL_PATH = REPORT_SECTIONS_DIR / "appendix_individual_returns_modeling.md"
 INDIVIDUAL_MODELING_LOG_PATH = LOGS_DIR / "individual_modeling.log"
+PREDICTIVE_MODELING_LOG_PATH = LOGS_DIR / "predictive_modeling.log"
 
 PORTFOLIO_MODEL_COMPARISON_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_model_comparison_summary.csv"
 PORTFOLIO_TEST_SUMMARY_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_statistical_test_summary.csv"
 PORTFOLIO_GARCH_SUMMARY_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_garch_summary.csv"
+PREDICTIVE_MODEL_SUMMARY_PATH = PREDICTIVE_TABLES_DIR / "predictive_model_summary.csv"
+PREDICTIVE_FORECAST_METRICS_PATH = PREDICTIVE_TABLES_DIR / "predictive_forecast_metrics.csv"
+PREDICTIVE_FORECASTS_PATH = PREDICTIVE_TABLES_DIR / "predictive_forecasts.csv"
 
-REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib", "scipy", "statsmodels")
+REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib", "scipy", "statsmodels", "pandas_datareader")
 
 RAW_TO_PERCENT_COLUMNS = {
     "SMALL LoBM": "small_lobm_vwret_pct",
@@ -77,10 +87,13 @@ PROJECT_DIRECTORIES = (
     PROCESSED_DATA_DIR,
     FIGURES_DIR,
     INDIVIDUAL_FIGURES_DIR,
+    PREDICTIVE_FIGURES_DIR,
     TABLES_DIR,
     INDIVIDUAL_TABLES_DIR,
+    PREDICTIVE_TABLES_DIR,
     MODELS_DIR,
     INDIVIDUAL_MODELS_DIR,
+    PREDICTIVE_MODELS_DIR,
     REPORT_SECTIONS_DIR,
     LOGS_DIR,
 )

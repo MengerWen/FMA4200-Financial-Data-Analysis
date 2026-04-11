@@ -1,0 +1,2 @@
+predictor_source,fama_french_available,sample_start,sample_end,n_rows,factor_columns,internal_columns
+authoritative_fama_french_cached,True,1926-07-31,2026-01-31,1195,"ff_mkt_rf_lag1_pct, ff_smb_lag1_pct, ff_hml_lag1_pct, ff_rf_lag1_pct","value_spread_lag1_pct, size_spread_lag1_pct, market_vol_12m_lag1_pct, market_momentum_12m_lag1_pct, market_drawdown_lag1"

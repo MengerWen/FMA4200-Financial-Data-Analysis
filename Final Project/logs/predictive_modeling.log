@@ -1,0 +1,9 @@
+2026-04-12 00:07:18,027 | INFO | Starting predictive modeling pipeline.
+2026-04-12 00:07:18,038 | INFO | Loaded cached Fama-French factors from D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\data\processed\fama_french_3f_monthly.csv
+2026-04-12 00:07:18,076 | INFO | Estimating predictive models for small_lobm_vwret_pct
+2026-04-12 00:08:44,101 | INFO | Estimating predictive models for me1_bm2_vwret_pct
+2026-04-12 00:12:18,175 | INFO | Estimating predictive models for small_hibm_vwret_pct
+2026-04-12 00:16:14,187 | INFO | Estimating predictive models for big_lobm_vwret_pct
+2026-04-12 00:19:08,366 | INFO | Estimating predictive models for me2_bm2_vwret_pct
+2026-04-12 00:22:01,008 | INFO | Estimating predictive models for big_hibm_vwret_pct
+2026-04-12 00:25:02,040 | INFO | Predictive modeling pipeline completed successfully.

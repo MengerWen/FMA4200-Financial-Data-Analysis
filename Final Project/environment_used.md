@@ -11,6 +11,7 @@
 - `matplotlib==3.9.2`
 - `scipy==1.13.1`
 - `statsmodels==0.14.2`
+- `pandas_datareader==0.10.0`
 
 ## Standard Library Modules Used
 
