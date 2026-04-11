@@ -44,6 +44,17 @@
   - `output/figures/cumulative_growth_of_1.png`
   - `logs/environment_check.txt`
   - `logs/pipeline_run.log`
+- Added report-writing groundwork:
+  - `report/outline.md`
+  - `report/sections/01_introduction.md`
+  - `report/sections/02_data_source_processing.md`
+  - `report/references.md`
+- Extended the reproducible pipeline with additional report-facing outputs:
+  - `output/tables/portfolio_summary_snapshot.csv`
+  - `output/tables/portfolio_correlation_matrix.csv`
+  - `output/figures/portfolio_correlation_heatmap.png`
+  - `report/sections/_02_data_snapshot_autogen.md`
+- Completed a verified literature groundwork pass with 12 academic references plus the Kenneth French data-source entry recorded in `report/references.md`.
 
 ## 2. What Ran Successfully
 
@@ -55,12 +66,16 @@
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\check_environment.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\clean_data.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_pipeline.py'`
+- Re-ran successfully after adding report-facing tables and figures:
+  - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_pipeline.py'`
 - Confirmed the cleaned monthly sample spans `1926-07-31` to `2026-01-31`.
 - Confirmed the cleaned dataset contains `1195` monthly observations and `6` value-weighted portfolio return columns.
 - Confirmed duplicate-date rows: `0`.
 - Confirmed missing values after sentinel conversion: `0`.
 - Saved date coverage, duplicate check, missingness check, and descriptive statistics tables under `output/tables/`.
 - Saved a data dictionary documenting the percent and decimal return conventions.
+- Saved a report-ready summary snapshot and correlation matrix under `output/tables/`.
+- Saved a report-ready correlation heatmap under `output/figures/`.
 
 ## 3. What Remains
 
@@ -78,3 +93,4 @@
 - No external data, literature sources, or downloaded factors have been added yet.
 - If later steps require internet-based inputs and access is unavailable, those steps will need a documented offline fallback.
 - An earlier `outputs/` folder from the initial baseline still exists, but the canonical pipeline created in this step writes to `output/`.
+- The manually written report sections in `report/sections/` are now separate from the auto-generated `_02_data_snapshot_autogen.md` file so future pipeline reruns do not overwrite the narrative draft.

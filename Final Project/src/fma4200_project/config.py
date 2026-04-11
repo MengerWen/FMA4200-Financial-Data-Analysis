@@ -23,7 +23,7 @@ README_PATH = ROOT / "README.md"
 PROJECT_STATUS_PATH = ROOT / "PROJECT_STATUS.md"
 ENVIRONMENT_USED_PATH = ROOT / "environment_used.md"
 
-REPORT_SECTION_PATH = REPORT_SECTIONS_DIR / "02_data_source_and_processing.md"
+AUTOGEN_DATA_SNAPSHOT_PATH = REPORT_SECTIONS_DIR / "_02_data_snapshot_autogen.md"
 ENVIRONMENT_LOG_PATH = LOGS_DIR / "environment_check.txt"
 PIPELINE_LOG_PATH = LOGS_DIR / "pipeline_run.log"
 
@@ -36,10 +36,13 @@ DUPLICATE_CHECK_PATH = TABLES_DIR / "duplicate_check.csv"
 MISSINGNESS_PATH = TABLES_DIR / "missingness_check.csv"
 DESCRIPTIVE_STATS_PCT_PATH = TABLES_DIR / "descriptive_statistics_pct.csv"
 DESCRIPTIVE_STATS_DEC_PATH = TABLES_DIR / "descriptive_statistics_decimal.csv"
+SUMMARY_SNAPSHOT_PATH = TABLES_DIR / "portfolio_summary_snapshot.csv"
+CORRELATION_MATRIX_PATH = TABLES_DIR / "portfolio_correlation_matrix.csv"
 SANITY_SUMMARY_PATH = TABLES_DIR / "sanity_checks_summary.csv"
 
 RETURNS_FIGURE_PATH = FIGURES_DIR / "monthly_returns_overview.png"
 GROWTH_FIGURE_PATH = FIGURES_DIR / "cumulative_growth_of_1.png"
+CORRELATION_HEATMAP_PATH = FIGURES_DIR / "portfolio_correlation_heatmap.png"
 MODELS_README_PATH = MODELS_DIR / "README.md"
 
 REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib")
@@ -66,4 +69,3 @@ PROJECT_DIRECTORIES = (
     REPORT_SECTIONS_DIR,
     LOGS_DIR,
 )
-
