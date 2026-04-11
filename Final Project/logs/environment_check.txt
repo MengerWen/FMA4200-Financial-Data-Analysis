@@ -1,0 +1,7 @@
+Environment check completed successfully.
+Interpreter: D:\MG\anaconda3\python.exe
+Python version: 3.12.7
+Verified imports:
+- numpy==1.26.4
+- pandas==2.2.2
+- matplotlib==3.9.2
