@@ -11,11 +11,13 @@ if str(SRC_PATH) not in sys.path:
 
 from fma4200_project.data_pipeline import run_cleaning_pipeline
 from fma4200_project.environment import run_environment_check
+from fma4200_project.univariate_modeling import run_individual_modeling_pipeline
 
 
 def main() -> None:
     package_versions = run_environment_check()
     result = run_cleaning_pipeline()
+    modeling_result = run_individual_modeling_pipeline()
 
     print("Full pipeline completed successfully.")
     print("Verified imports:")
@@ -25,6 +27,7 @@ def main() -> None:
     print(f"Coverage: {result['start_date']:%Y-%m-%d} to {result['end_date']:%Y-%m-%d}")
     print(f"Duplicate date rows: {result['duplicate_date_rows']}")
     print(f"Total missing values: {result['total_missing_values']}")
+    print(f"Portfolios modeled: {modeling_result['n_portfolios']}")
 
 
 if __name__ == "__main__":

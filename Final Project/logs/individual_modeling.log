@@ -1,0 +1,8 @@
+2026-04-11 22:33:05,332 | INFO | Starting individual portfolio modeling pipeline.
+2026-04-11 22:33:05,339 | INFO | Analyzing small_lobm_vwret_pct
+2026-04-11 22:33:10,792 | INFO | Analyzing me1_bm2_vwret_pct
+2026-04-11 22:33:16,225 | INFO | Analyzing small_hibm_vwret_pct
+2026-04-11 22:33:20,991 | INFO | Analyzing big_lobm_vwret_pct
+2026-04-11 22:33:25,944 | INFO | Analyzing me2_bm2_vwret_pct
+2026-04-11 22:33:30,752 | INFO | Analyzing big_hibm_vwret_pct
+2026-04-11 22:33:35,975 | INFO | Individual portfolio modeling pipeline completed successfully.

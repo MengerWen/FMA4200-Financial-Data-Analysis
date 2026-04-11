@@ -45,7 +45,19 @@ GROWTH_FIGURE_PATH = FIGURES_DIR / "cumulative_growth_of_1.png"
 CORRELATION_HEATMAP_PATH = FIGURES_DIR / "portfolio_correlation_heatmap.png"
 MODELS_README_PATH = MODELS_DIR / "README.md"
 
-REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib")
+INDIVIDUAL_FIGURES_DIR = FIGURES_DIR / "individual_returns"
+INDIVIDUAL_TABLES_DIR = TABLES_DIR / "individual_returns"
+INDIVIDUAL_MODELS_DIR = MODELS_DIR / "individual_returns"
+
+SECTION_03_PATH = REPORT_SECTIONS_DIR / "03_individual_returns_modeling.md"
+APPENDIX_INDIVIDUAL_PATH = REPORT_SECTIONS_DIR / "appendix_individual_returns_modeling.md"
+INDIVIDUAL_MODELING_LOG_PATH = LOGS_DIR / "individual_modeling.log"
+
+PORTFOLIO_MODEL_COMPARISON_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_model_comparison_summary.csv"
+PORTFOLIO_TEST_SUMMARY_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_statistical_test_summary.csv"
+PORTFOLIO_GARCH_SUMMARY_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_garch_summary.csv"
+
+REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib", "scipy", "statsmodels")
 
 RAW_TO_PERCENT_COLUMNS = {
     "SMALL LoBM": "small_lobm_vwret_pct",
@@ -64,8 +76,11 @@ PROJECT_DIRECTORIES = (
     SCRIPTS_DIR,
     PROCESSED_DATA_DIR,
     FIGURES_DIR,
+    INDIVIDUAL_FIGURES_DIR,
     TABLES_DIR,
+    INDIVIDUAL_TABLES_DIR,
     MODELS_DIR,
+    INDIVIDUAL_MODELS_DIR,
     REPORT_SECTIONS_DIR,
     LOGS_DIR,
 )

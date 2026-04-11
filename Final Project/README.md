@@ -1,10 +1,10 @@
 # FMA4200 Final Project
 
-This project analyzes six Kenneth French value-weighted portfolios using the course-provided `Data.csv` file. The reproducible setup in this folder focuses on data cleaning, environment verification, and baseline sanity checks so later modeling and trading-strategy work can build on a clean foundation.
+This project analyzes six Kenneth French value-weighted portfolios using the course-provided `Data.csv` file. The reproducible setup in this folder now covers environment verification, data cleaning, baseline sanity checks, and the core univariate return-modeling stage for the six portfolios.
 
 ## Canonical Structure
 
-- `src/fma4200_project/`: reusable project code for environment checks and data cleaning
+- `src/fma4200_project/`: reusable project code for environment checks, data cleaning, and modeling
 - `scripts/`: runnable scripts
 - `data/processed/`: cleaned datasets and the data dictionary
 - `output/figures/`: baseline figures
@@ -29,7 +29,9 @@ The raw Kenneth French monthly value-weighted section reports returns in **perce
 - Data dictionary: `data/processed/data_dictionary.csv`
 - Environment summary: `environment_used.md`
 - Pipeline log: `logs/pipeline_run.log`
-- Data-processing report draft: `report/sections/02_data_source_and_processing.md`
+- Data-processing report draft: `report/sections/02_data_source_processing.md`
+- Individual-modeling report draft: `report/sections/03_individual_returns_modeling.md`
+- Modeling appendix: `report/sections/appendix_individual_returns_modeling.md`
 
 ## Reproducible Commands
 
@@ -45,6 +47,12 @@ Run only the cleaning and sanity-check step:
 & 'd:\MG\anaconda3\python.exe' 'scripts\clean_data.py'
 ```
 
+Run only the individual portfolio modeling step:
+
+```powershell
+& 'd:\MG\anaconda3\python.exe' 'scripts\run_individual_modeling.py'
+```
+
 Run the full current pipeline:
 
 ```powershell
@@ -58,7 +66,9 @@ The current pipeline saves:
 - cleaned percent and decimal datasets,
 - a data dictionary,
 - date coverage, duplicate, missingness, and descriptive-statistics tables,
-- two baseline figures, and
-- a short report section draft for data source and processing.
+- baseline portfolio figures,
+- per-portfolio univariate diagnostics and model summaries,
+- combined ARIMA and GARCH comparison tables, and
+- report drafts for the data and individual-modeling sections.
 
 The canonical current output folder is `output/`.

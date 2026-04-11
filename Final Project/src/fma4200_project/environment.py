@@ -33,8 +33,11 @@ def write_environment_files(package_versions: list[tuple[str, str]]) -> None:
             "",
             "## Standard Library Modules Used",
             "",
+            "- `ast`",
+            "- `dataclasses`",
             "- `io`",
             "- `logging`",
+            "- `warnings`",
             "- `pathlib`",
             "- `sys`",
             "- `platform`",
@@ -57,4 +60,3 @@ def run_environment_check() -> list[tuple[str, str]]:
     package_versions = check_required_imports()
     write_environment_files(package_versions)
     return package_versions
-
