@@ -5,4 +5,5 @@ HTML: D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\report\final_r
 PDF path reserved: D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\report\final_report.pdf
 Appendices: D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\report\final_appendices.md
 Project status file: D:\MG\! CUHKSZ\~！大三 下\FMA 4200\Github\Final Project\PROJECT_STATUS.md
-Export status: Automatic PDF export is not supported in the current environment.
+Export status: A previously generated PDF is available, but this run did not refresh it automatically.
+PDF result: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe: Command '['C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe', '--headless=new', '--disable-gpu', '--disable-breakpad', '--no-first-run', '--no-default-browser-check', '--crash-dumps-dir=D:\\MG\\! CUHKSZ\\~！大三 下\\FMA 4200\\Github\\Final Project\\logs\\browser_crashes', '--user-data-dir=D:\\MG\\! CUHKSZ\\~！大三 下\\FMA 4200\\Github\\Final Project\\logs\\browser_headless_profile', '--allow-file-access-from-files', '--print-to-pdf=D:\\MG\\! CUHKSZ\\~！大三 下\\FMA 4200\\Github\\Final Project\\report\\final_report.pdf', 'file:///D:/MG/%21%20CUHKSZ/~%EF%BC%81%E5%A4%A7%E4%B8%89%20%E4%B8%8B/FMA%204200/Github/Final%20Project/report/final_report.html']' returned non-zero exit status 2147483651.

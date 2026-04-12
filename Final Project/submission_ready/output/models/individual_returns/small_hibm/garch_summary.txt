@@ -1,0 +1,10 @@
+Success: True
+Message: CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH
+mu: 1.418870
+omega: 1.398708
+alpha: 0.140501
+beta: 0.839808
+persistence: 0.980308
+loglik: -3895.158082
+AIC: 7798.316163
+BIC: 7818.659769

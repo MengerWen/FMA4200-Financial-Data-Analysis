@@ -1,0 +1,14 @@
+variable_name,dataset_name,dtype,unit,description,conversion_note
+date,monthly_portfolio_returns_clean.csv,date,month-end calendar date,Month-end timestamp derived from the YYYYMM code in the raw CSV.,Converted from raw YYYYMM integer code to ISO date.
+small_lobm_vwret_pct,monthly_portfolio_returns_clean.csv,float,percent monthly return,"Small size, low book-to-market, value-weighted monthly return.",Stored in percent units exactly as in the monthly value-weighted section of the raw file.
+me1_bm2_vwret_pct,monthly_portfolio_returns_clean.csv,float,percent monthly return,"Small size, middle book-to-market, value-weighted monthly return.",Stored in percent units exactly as in the monthly value-weighted section of the raw file.
+small_hibm_vwret_pct,monthly_portfolio_returns_clean.csv,float,percent monthly return,"Small size, high book-to-market, value-weighted monthly return.",Stored in percent units exactly as in the monthly value-weighted section of the raw file.
+big_lobm_vwret_pct,monthly_portfolio_returns_clean.csv,float,percent monthly return,"Big size, low book-to-market, value-weighted monthly return.",Stored in percent units exactly as in the monthly value-weighted section of the raw file.
+me2_bm2_vwret_pct,monthly_portfolio_returns_clean.csv,float,percent monthly return,"Big size, middle book-to-market, value-weighted monthly return.",Stored in percent units exactly as in the monthly value-weighted section of the raw file.
+big_hibm_vwret_pct,monthly_portfolio_returns_clean.csv,float,percent monthly return,"Big size, high book-to-market, value-weighted monthly return.",Stored in percent units exactly as in the monthly value-weighted section of the raw file.
+small_lobm_vwret_dec,monthly_portfolio_returns_decimal.csv,float,decimal monthly return,"Small size, low book-to-market, value-weighted monthly return in decimal form.",Computed as small_lobm_vwret_pct / 100.0.
+me1_bm2_vwret_dec,monthly_portfolio_returns_decimal.csv,float,decimal monthly return,"Small size, middle book-to-market, value-weighted monthly return in decimal form.",Computed as me1_bm2_vwret_pct / 100.0.
+small_hibm_vwret_dec,monthly_portfolio_returns_decimal.csv,float,decimal monthly return,"Small size, high book-to-market, value-weighted monthly return in decimal form.",Computed as small_hibm_vwret_pct / 100.0.
+big_lobm_vwret_dec,monthly_portfolio_returns_decimal.csv,float,decimal monthly return,"Big size, low book-to-market, value-weighted monthly return in decimal form.",Computed as big_lobm_vwret_pct / 100.0.
+me2_bm2_vwret_dec,monthly_portfolio_returns_decimal.csv,float,decimal monthly return,"Big size, middle book-to-market, value-weighted monthly return in decimal form.",Computed as me2_bm2_vwret_pct / 100.0.
+big_hibm_vwret_dec,monthly_portfolio_returns_decimal.csv,float,decimal monthly return,"Big size, high book-to-market, value-weighted monthly return in decimal form.",Computed as big_hibm_vwret_pct / 100.0.
