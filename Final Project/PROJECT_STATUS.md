@@ -6,6 +6,11 @@
 
 ## 1. What Was Added or Changed
 
+- Upgraded Section 3 to use canonical `arch`-based volatility modeling and richer distribution diagnostics:
+  - replaced the old hand-coded Gaussian GARCH(1,1) workflow in `src/fma4200_project/univariate_modeling.py`
+  - added fitted normal-versus-Student-t marginal distribution comparisons, Shapiro-Wilk tests, and two-panel QQ diagnostics
+  - updated `src/fma4200_project/final_report_builder.py` so the generated main report stays synchronized with the revised Section 3 logic
+  - regenerated `report/sections/03_individual_returns_modeling.md`, `report/sections/appendix_individual_returns_modeling.md`, and `report/final_report.md`
 - Added the requested reproducible project structure:
   - `src/fma4200_project/`
   - `scripts/`
@@ -150,6 +155,7 @@
   - `matplotlib 3.9.2`
   - `scipy 1.13.1`
   - `statsmodels 0.14.2`
+  - `arch 8.0.0`
   - `pandas_datareader 0.10.0`
   - `cvxpy 1.6.6`
   - `sklearn 1.5.1`
@@ -171,7 +177,10 @@
 - Saved a report-ready summary snapshot and correlation matrix under `output/tables/`.
 - Saved a report-ready correlation heatmap under `output/figures/`.
 - Modeled all `6` portfolios individually and saved per-series time-series plots, histogram-density plots, QQ plots, ACF/PACF plots, residual diagnostics, volatility-clustering diagnostics, ARIMA candidate comparisons, selected-model parameter tables, and GARCH summaries.
-- Confirmed the hand-rolled Gaussian GARCH(1,1) estimator converged for all six portfolios and substantially reduced ARCH effects in standardized residuals.
+- Confirmed `arch 8.0.0` imports successfully in the required interpreter and is now the canonical Section 3 volatility engine.
+- Confirmed the upgraded Section 3 diagnostics now include Shapiro-Wilk tests plus fitted normal-versus-Student-t comparisons for all six portfolios.
+- Confirmed the fitted Student-t marginal distribution is preferred to the fitted Gaussian benchmark in `6/6` portfolios by AIC.
+- Confirmed the selected `arch`-based volatility model is `Student-t GARCH(1,1)` in `6/6` portfolios, with standardized-residual diagnostics materially weaker than the pre-filter ARCH effects.
 - Downloaded and cached the authoritative monthly Fama-French factors once, then verified later reruns use the cached local file.
 - Built a reproducible monthly predictor panel with lagged Fama-French factors, size and value spreads, rolling volatility, rolling momentum, and a drawdown proxy.
 - Estimated predictive ARIMAX and predictive-regression models for all `6` portfolios and saved per-portfolio parameter tables, forecast paths, forecast-comparison figures, and written interpretations.
@@ -228,7 +237,7 @@
 - If future steps require additional internet-based inputs beyond the cached factors and access is unavailable, those steps will need a documented offline fallback.
 - An earlier `outputs/` folder from the initial baseline still exists, but the canonical pipeline created in this step writes to `output/`.
 - The manually written report sections in `report/sections/` are now separate from the auto-generated `_02_data_snapshot_autogen.md` file so future pipeline reruns do not overwrite the narrative draft.
-- The custom GARCH(1,1) step is intentionally limited to Gaussian constant-mean volatility modeling because the `arch` package is unavailable. The saved results are suitable for Section 3 diagnostics and comparisons, but not a substitute for the broader inference and model families available in `arch`.
+- The active project files now rely on `arch` for the canonical Section 3 volatility implementation. Archived copies under `submission_ready/` will remain stale until the audit-and-packaging workflow is rerun.
 - The predictive out-of-sample evaluation now uses monthly expanding-window refits for one-step-ahead forecasts. This is computationally heavier than a fixed-parameter walk-forward update, but it is stable with the available toolchain and avoids relying on fragile `statsmodels` state-append behavior.
 - The full-sample Johansen result supports one cointegration relation on log wealth, but the rolling rank is not stable across history. The saved stat-arb backtest should therefore be interpreted as an honest empirical result rather than evidence of a robust production strategy.
 - The current plug-in mean-variance strategy uses no-short-sale constraints for numerical stability and practical interpretability. The improved variant further adds Ledoit-Wolf shrinkage, weight bounds, and a turnover penalty.

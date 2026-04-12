@@ -1,8 +1,14 @@
-2026-04-12 12:09:54,022 | INFO | Starting individual portfolio modeling pipeline.
-2026-04-12 12:09:54,027 | INFO | Analyzing small_lobm_vwret_pct
-2026-04-12 12:09:57,959 | INFO | Analyzing me1_bm2_vwret_pct
-2026-04-12 12:10:02,121 | INFO | Analyzing small_hibm_vwret_pct
-2026-04-12 12:10:05,629 | INFO | Analyzing big_lobm_vwret_pct
-2026-04-12 12:10:09,269 | INFO | Analyzing me2_bm2_vwret_pct
-2026-04-12 12:10:12,642 | INFO | Analyzing big_hibm_vwret_pct
-2026-04-12 12:10:16,478 | INFO | Individual portfolio modeling pipeline completed successfully.
+2026-04-12 19:04:19,925 | INFO | Starting individual portfolio modeling pipeline.
+2026-04-12 19:04:19,945 | INFO | Analyzing small_lobm_vwret_pct
+2026-04-12 19:04:24,107 | INFO | Completed small_lobm_vwret_pct with (0, 0, 2) and Student-t GARCH(1,1)
+2026-04-12 19:04:24,110 | INFO | Analyzing me1_bm2_vwret_pct
+2026-04-12 19:04:28,363 | INFO | Completed me1_bm2_vwret_pct with (2, 0, 2) and Student-t GARCH(1,1)
+2026-04-12 19:04:28,366 | INFO | Analyzing small_hibm_vwret_pct
+2026-04-12 19:04:31,934 | INFO | Completed small_hibm_vwret_pct with (2, 0, 2) and Student-t GARCH(1,1)
+2026-04-12 19:04:31,939 | INFO | Analyzing big_lobm_vwret_pct
+2026-04-12 19:04:35,550 | INFO | Completed big_lobm_vwret_pct with (2, 0, 2) and Student-t GARCH(1,1)
+2026-04-12 19:04:35,553 | INFO | Analyzing me2_bm2_vwret_pct
+2026-04-12 19:04:39,007 | INFO | Completed me2_bm2_vwret_pct with (2, 0, 2) and Student-t GARCH(1,1)
+2026-04-12 19:04:39,011 | INFO | Analyzing big_hibm_vwret_pct
+2026-04-12 19:04:42,785 | INFO | Completed big_hibm_vwret_pct with (2, 0, 2) and Student-t GARCH(1,1)
+2026-04-12 19:04:42,798 | INFO | Individual portfolio modeling pipeline completed successfully.

@@ -106,6 +106,7 @@ REQUIRED_IMPORTS = (
     "matplotlib",
     "scipy",
     "statsmodels",
+    "arch",
     "pandas_datareader",
     "cvxpy",
     "sklearn",

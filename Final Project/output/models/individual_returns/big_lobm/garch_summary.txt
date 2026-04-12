@@ -1,10 +1,25 @@
-Success: True
-Message: CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH
-mu: 1.074974
-omega: 0.703436
-alpha: 0.133512
-beta: 0.846518
-persistence: 0.980030
-loglik: -3538.822720
-AIC: 7085.645440
-BIC: 7105.989046
+                          Zero Mean - GARCH Model Results                           
+====================================================================================
+Dep. Variable:                         None   R-squared:                       0.000
+Mean Model:                       Zero Mean   Adj. R-squared:                  0.001
+Vol Model:                            GARCH   Log-Likelihood:               -3522.82
+Distribution:      Standardized Student's t   AIC:                           7053.65
+Method:                  Maximum Likelihood   BIC:                           7073.99
+                                              No. Observations:                 1195
+Date:                      Sun, Apr 12 2026   Df Residuals:                     1195
+Time:                              19:04:35   Df Model:                            0
+                             Volatility Model                             
+==========================================================================
+                 coef    std err          t      P>|t|    95.0% Conf. Int.
+--------------------------------------------------------------------------
+omega          0.9192      0.291      3.158  1.591e-03   [  0.349,  1.490]
+alpha[1]       0.1231  2.210e-02      5.572  2.522e-08 [7.983e-02,  0.166]
+beta[1]        0.8437  2.331e-02     36.200 6.120e-287   [  0.798,  0.889]
+                              Distribution                              
+========================================================================
+                 coef    std err          t      P>|t|  95.0% Conf. Int.
+------------------------------------------------------------------------
+nu             8.7474      1.964      4.455  8.397e-06 [  4.899, 12.596]
+========================================================================
+
+Covariance estimator: robust

@@ -1,9 +1,9 @@
 # Big HiBM
 
 - Distribution: mean = 1.213% per month, volatility = 7.081% per month, skewness = 1.443, kurtosis = 20.449.
-- Normality: The Jarque-Bera test rejects normality.
+- Normality: Jarque-Bera and Shapiro-Wilk both reject normality. The fitted Student-t distribution improves AIC by 432.0 points relative to the Gaussian fit.
 - Stationarity: Both ADF and KPSS support treating the return series as stationary in levels.
 - Selected mean model: ARIMA(2, 0, 2) chosen because lowest BIC within 2 AIC points among models with acceptable residual autocorrelation and mostly significant dynamic terms.
 - Residual autocorrelation: Ljung-Box p-value at lag 12 = 0.067.
-- Volatility model: Gaussian GARCH(1,1) estimates alpha = 0.151, beta = 0.817, and persistence = 0.968.
-- Volatility clustering: raw ARCH-LM p-value = 0.0000; standardized-residual ARCH-LM p-value = 0.9069. ARCH effects are materially weaker after GARCH standardization.
+- Volatility model: Student-t GARCH(1,1) estimated on ARIMA residuals with alpha = 0.133, beta = 0.829, and persistence = 0.962. Estimated Student-t degrees of freedom = 7.46, reinforcing the heavy-tail interpretation.
+- Volatility clustering: ARIMA-residual ARCH-LM p-value = 0.0000; standardized-residual ARCH-LM p-value = 0.6704. ARCH effects are materially weaker after the arch-based volatility filter.

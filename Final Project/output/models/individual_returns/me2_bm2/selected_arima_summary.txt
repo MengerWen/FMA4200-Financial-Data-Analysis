@@ -3,7 +3,7 @@
 Dep. Variable:      me2_bm2_vwret_pct   No. Observations:                 1195
 Model:                 ARIMA(2, 0, 2)   Log Likelihood               -3722.905
 Date:                Sun, 12 Apr 2026   AIC                           7457.811
-Time:                        12:10:12   BIC                           7488.311
+Time:                        19:04:39   BIC                           7488.311
 Sample:                             0   HQIC                          7469.304
                                - 1195                                         
 Covariance Type:                  opg                                         
