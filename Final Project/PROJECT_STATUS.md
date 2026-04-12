@@ -89,6 +89,31 @@
 - Updated the Section 3 report files so they now include the predictive-modeling stage:
   - `report/sections/03_individual_returns_modeling.md`
   - `report/sections/appendix_individual_returns_modeling.md`
+- Added the Section 4 trading-strategies pipeline:
+  - `src/fma4200_project/trading_strategies.py`
+  - `scripts/run_trading_strategies.py`
+  - updated `scripts/run_pipeline.py` so the top-level pipeline now runs cleaning, univariate modeling, predictive modeling, and trading strategies
+- Added Section 4 data and backtest artifacts:
+  - `data/processed/portfolio_wealth_indices.csv`
+  - `output/tables/trading_strategies/var_lag_selection.csv`
+  - `output/tables/trading_strategies/var_diagnostics.csv`
+  - `output/tables/trading_strategies/var_stability_roots.csv`
+  - `output/tables/trading_strategies/cointegration_integration_order_tests.csv`
+  - `output/tables/trading_strategies/cointegration_summary.csv`
+  - `output/tables/trading_strategies/cointegration_vectors.csv`
+  - `output/tables/trading_strategies/stat_arb_backtest.csv`
+  - `output/tables/trading_strategies/stat_arb_signals.csv`
+  - `output/tables/trading_strategies/strategy_returns.csv`
+  - `output/tables/trading_strategies/strategy_metrics.csv`
+  - `output/tables/trading_strategies/strategy_weights.csv`
+  - `output/tables/trading_strategies/efficient_frontier_points.csv`
+- Added Section 4 figures and model notes:
+  - `output/figures/trading_strategies/`
+  - `output/models/trading_strategies/var_summary.txt`
+  - `output/models/trading_strategies/vecm_summary.txt`
+  - `output/models/trading_strategies/strategy_rules.md`
+- Added the Section 4 report draft:
+  - `report/sections/04_trading_strategies.md`
 
 ## 2. What Ran Successfully
 
@@ -99,11 +124,14 @@
   - `scipy 1.13.1`
   - `statsmodels 0.14.2`
   - `pandas_datareader 0.10.0`
+  - `cvxpy 1.6.6`
+  - `sklearn 1.5.1`
 - Ran successfully:
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\check_environment.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\clean_data.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_individual_modeling.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_predictive_modeling.py'`
+  - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_trading_strategies.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_pipeline.py'`
 - Confirmed the cleaned monthly sample spans `1926-07-31` to `2026-01-31`.
 - Confirmed the cleaned dataset contains `1195` monthly observations and `6` value-weighted portfolio return columns.
@@ -123,12 +151,30 @@
   - `big_hibm_vwret_pct`: `+5.00%` RMSE improvement versus the benchmark
   - `me2_bm2_vwret_pct`: `+2.90%` RMSE improvement versus the benchmark
 - Confirmed the most common preferred predictive family in the current run is the predictive regression with lagged factors and internal signals.
+- Completed a full Section 4 trading-strategies run in the required interpreter.
+- Fitted a multivariate VAR to the six monthly return series and selected `VAR(1)` by BIC. The fitted system is stable, while multivariate whiteness and normality diagnostics are both rejected.
+- Verified the integration-order logic needed for cointegration:
+  - all `6/6` raw return series are classified as stationary,
+  - all `6/6` log-wealth level series are classified as nonstationary, and
+  - all `6/6` first differences of log wealth are classified as stationary.
+- Selected a Johansen trace-test cointegration rank of `1` on the full-sample log-wealth representation, and saved the associated vector/loadings table.
+- Backtested a cointegration-based statistical-arbitrage strategy with documented entry/exit rules, turnover tracking, and 10 bps one-way transaction costs. In the current common out-of-sample sample, the stat-arb strategy is weak:
+  - annualized net return: `-0.11%`
+  - annualized net volatility: `1.42%`
+  - net Sharpe: `-0.077`
+  - max drawdown: `-18.83%`
+- Backtested the rolling mean-variance strategies against the equally weighted benchmark over the common out-of-sample period:
+  - Equal Weight: annualized net return `12.24%`, net Sharpe `0.743`
+  - Plug-In Mean-Variance: annualized net return `13.42%`, net Sharpe `0.873`
+  - Improved Plug-In Mean-Variance: annualized net return `12.63%`, net Sharpe `0.815`
+- Confirmed the improved plug-in strategy materially reduces trading intensity:
+  - baseline plug-in average turnover: `0.0438`
+  - improved plug-in average turnover: `0.0034`
 
 ## 3. What Remains
 
-- Build multivariate analysis for cointegration and statistical arbitrage.
-- Implement mean-variance optimization, efficient frontier plots, and backtests against an equally weighted benchmark.
-- Expand the report beyond Section 3 and integrate the saved predictive tables and figures into a final write-up.
+- Write the final conclusions section and integrate Sections 1 through 4 into the final submitted report format.
+- Decide whether to retain the current cointegration stat-arb specification as a negative result or iterate on alternative spread construction / execution rules.
 
 ## 4. Blockers or Assumptions
 
@@ -140,3 +186,5 @@
 - The manually written report sections in `report/sections/` are now separate from the auto-generated `_02_data_snapshot_autogen.md` file so future pipeline reruns do not overwrite the narrative draft.
 - The custom GARCH(1,1) step is intentionally limited to Gaussian constant-mean volatility modeling because the `arch` package is unavailable. The saved results are suitable for Section 3 diagnostics and comparisons, but not a substitute for the broader inference and model families available in `arch`.
 - The predictive out-of-sample evaluation now uses monthly expanding-window refits for one-step-ahead forecasts. This is computationally heavier than a fixed-parameter walk-forward update, but it is stable with the available toolchain and avoids relying on fragile `statsmodels` state-append behavior.
+- The full-sample Johansen result supports one cointegration relation on log wealth, but the rolling rank is not stable across history. The saved stat-arb backtest should therefore be interpreted as an honest empirical result rather than evidence of a robust production strategy.
+- The current plug-in mean-variance strategy uses no-short-sale constraints for numerical stability and practical interpretability. The improved variant further adds Ledoit-Wolf shrinkage, weight bounds, and a turnover penalty.

@@ -54,11 +54,16 @@ INDIVIDUAL_MODELS_DIR = MODELS_DIR / "individual_returns"
 PREDICTIVE_FIGURES_DIR = FIGURES_DIR / "predictive_individual_returns"
 PREDICTIVE_TABLES_DIR = TABLES_DIR / "predictive_individual_returns"
 PREDICTIVE_MODELS_DIR = MODELS_DIR / "predictive_individual_returns"
+TRADING_FIGURES_DIR = FIGURES_DIR / "trading_strategies"
+TRADING_TABLES_DIR = TABLES_DIR / "trading_strategies"
+TRADING_MODELS_DIR = MODELS_DIR / "trading_strategies"
 
 SECTION_03_PATH = REPORT_SECTIONS_DIR / "03_individual_returns_modeling.md"
+SECTION_04_PATH = REPORT_SECTIONS_DIR / "04_trading_strategies.md"
 APPENDIX_INDIVIDUAL_PATH = REPORT_SECTIONS_DIR / "appendix_individual_returns_modeling.md"
 INDIVIDUAL_MODELING_LOG_PATH = LOGS_DIR / "individual_modeling.log"
 PREDICTIVE_MODELING_LOG_PATH = LOGS_DIR / "predictive_modeling.log"
+TRADING_STRATEGIES_LOG_PATH = LOGS_DIR / "trading_strategies.log"
 
 PORTFOLIO_MODEL_COMPARISON_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_model_comparison_summary.csv"
 PORTFOLIO_TEST_SUMMARY_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_statistical_test_summary.csv"
@@ -66,8 +71,21 @@ PORTFOLIO_GARCH_SUMMARY_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_garch_summary.
 PREDICTIVE_MODEL_SUMMARY_PATH = PREDICTIVE_TABLES_DIR / "predictive_model_summary.csv"
 PREDICTIVE_FORECAST_METRICS_PATH = PREDICTIVE_TABLES_DIR / "predictive_forecast_metrics.csv"
 PREDICTIVE_FORECASTS_PATH = PREDICTIVE_TABLES_DIR / "predictive_forecasts.csv"
+VAR_LAG_SELECTION_PATH = TRADING_TABLES_DIR / "var_lag_selection.csv"
+VAR_DIAGNOSTICS_PATH = TRADING_TABLES_DIR / "var_diagnostics.csv"
+VAR_STABILITY_PATH = TRADING_TABLES_DIR / "var_stability_roots.csv"
+COINTEGRATION_ORDER_TESTS_PATH = TRADING_TABLES_DIR / "cointegration_integration_order_tests.csv"
+COINTEGRATION_SUMMARY_PATH = TRADING_TABLES_DIR / "cointegration_summary.csv"
+COINTEGRATION_VECTORS_PATH = TRADING_TABLES_DIR / "cointegration_vectors.csv"
+STAT_ARB_BACKTEST_PATH = TRADING_TABLES_DIR / "stat_arb_backtest.csv"
+STAT_ARB_SIGNAL_PATH = TRADING_TABLES_DIR / "stat_arb_signals.csv"
+STRATEGY_RETURNS_PATH = TRADING_TABLES_DIR / "strategy_returns.csv"
+STRATEGY_METRICS_PATH = TRADING_TABLES_DIR / "strategy_metrics.csv"
+STRATEGY_WEIGHTS_PATH = TRADING_TABLES_DIR / "strategy_weights.csv"
+EFFICIENT_FRONTIER_POINTS_PATH = TRADING_TABLES_DIR / "efficient_frontier_points.csv"
+MULTIVARIATE_WEALTH_PANEL_PATH = PROCESSED_DATA_DIR / "portfolio_wealth_indices.csv"
 
-REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib", "scipy", "statsmodels", "pandas_datareader")
+REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib", "scipy", "statsmodels", "pandas_datareader", "cvxpy", "sklearn")
 
 RAW_TO_PERCENT_COLUMNS = {
     "SMALL LoBM": "small_lobm_vwret_pct",
@@ -88,12 +106,15 @@ PROJECT_DIRECTORIES = (
     FIGURES_DIR,
     INDIVIDUAL_FIGURES_DIR,
     PREDICTIVE_FIGURES_DIR,
+    TRADING_FIGURES_DIR,
     TABLES_DIR,
     INDIVIDUAL_TABLES_DIR,
     PREDICTIVE_TABLES_DIR,
+    TRADING_TABLES_DIR,
     MODELS_DIR,
     INDIVIDUAL_MODELS_DIR,
     PREDICTIVE_MODELS_DIR,
+    TRADING_MODELS_DIR,
     REPORT_SECTIONS_DIR,
     LOGS_DIR,
 )

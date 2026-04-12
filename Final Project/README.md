@@ -1,6 +1,6 @@
 # FMA4200 Final Project
 
-This project analyzes six Kenneth French value-weighted portfolios using the course-provided `Data.csv` file. The reproducible setup in this folder now covers environment verification, data cleaning, baseline sanity checks, univariate return modeling, and exogenous predictive modeling with cached Fama-French monthly factors plus internally constructed fallback signals.
+This project analyzes six Kenneth French value-weighted portfolios using the course-provided `Data.csv` file. The reproducible setup in this folder now covers environment verification, data cleaning, univariate return modeling, exogenous predictive modeling with cached Fama-French monthly factors, and the full trading-strategies stage including VAR analysis, cointegration-based stat-arb, and rolling mean-variance backtests.
 
 ## Canonical Structure
 
@@ -32,9 +32,11 @@ The raw Kenneth French monthly value-weighted section reports returns in **perce
 - Data-processing report draft: `report/sections/02_data_source_processing.md`
 - Individual-modeling report draft: `report/sections/03_individual_returns_modeling.md`
 - Modeling appendix: `report/sections/appendix_individual_returns_modeling.md`
+- Trading-strategies report draft: `report/sections/04_trading_strategies.md`
 - Cached Fama-French factors: `data/processed/fama_french_3f_monthly.csv`
 - Predictor panel: `data/processed/predictor_dataset_monthly.csv`
 - Predictor source summary: `data/processed/predictor_source_summary.csv`
+- Wealth index panel: `data/processed/portfolio_wealth_indices.csv`
 
 ## Reproducible Commands
 
@@ -62,6 +64,12 @@ Run only the predictive-modeling extension:
 & 'd:\MG\anaconda3\python.exe' 'scripts\run_predictive_modeling.py'
 ```
 
+Run only the trading-strategies stage:
+
+```powershell
+& 'd:\MG\anaconda3\python.exe' 'scripts\run_trading_strategies.py'
+```
+
 Run the full current pipeline:
 
 ```powershell
@@ -82,6 +90,11 @@ The current pipeline saves:
 - a monthly predictor dataset with lagged factor and internal signals,
 - per-portfolio predictive forecast plots, parameter tables, model summaries, and interpretations,
 - combined predictive comparison and forecast tables, and
-- report drafts for the data and individual-modeling sections.
+- VAR lag-selection, stability, IRF, and FEVD outputs,
+- cointegration order-testing and Johansen/VECM outputs on wealth representations,
+- statistical-arbitrage signal and backtest files,
+- efficient-frontier tables and figures,
+- rolling strategy weights and performance comparisons for equal-weight and mean-variance portfolios, and
+- report drafts for Sections 2 through 4.
 
 The canonical current output folder is `output/`.

@@ -10,9 +10,15 @@ from .config import ENVIRONMENT_LOG_PATH, ENVIRONMENT_USED_PATH, REQUIRED_IMPORT
 
 def check_required_imports() -> list[tuple[str, str]]:
     package_versions: list[tuple[str, str]] = []
+    version_name_map = {"sklearn": "scikit-learn"}
     for package_name in REQUIRED_IMPORTS:
-        importlib.import_module(package_name)
-        package_versions.append((package_name, metadata.version(package_name)))
+        module = importlib.import_module(package_name)
+        distribution_name = version_name_map.get(package_name, package_name)
+        try:
+            version = metadata.version(distribution_name)
+        except metadata.PackageNotFoundError:
+            version = getattr(module, "__version__", "unknown")
+        package_versions.append((package_name, version))
     return package_versions
 
 
@@ -42,6 +48,7 @@ def write_environment_files(package_versions: list[tuple[str, str]]) -> None:
             "- `sys`",
             "- `platform`",
             "- `importlib.metadata`",
+            "- `math`",
         ]
     )
     ENVIRONMENT_USED_PATH.write_text("\n".join(environment_lines) + "\n", encoding="utf-8")

@@ -12,6 +12,8 @@
 - `scipy==1.13.1`
 - `statsmodels==0.14.2`
 - `pandas_datareader==0.10.0`
+- `cvxpy==1.6.6`
+- `sklearn==1.5.1`
 
 ## Standard Library Modules Used
 
@@ -24,3 +26,4 @@
 - `sys`
 - `platform`
 - `importlib.metadata`
+- `math`
