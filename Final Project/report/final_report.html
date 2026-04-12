@@ -7510,7 +7510,7 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5a117a37">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2766aa55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7635,7 +7635,7 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 </tbody>
 </table>
 <p>Table 2 shows two patterns that drive the rest of the report. The highest average return belongs to Small HiBM at 1.42% per month, but it is also the most volatile at 8.08% per month. At the other end, Big LoBM is much less volatile at 5.27% per month. The pairwise correlation range, from about 0.778 to 0.961, is high enough to motivate joint modeling and efficient-frontier analysis while still leaving room for relative-value spreads and diversification.</p>
-<h2 id="3.-Modeling-the-Individual-Portfolio-Returns">3. Modeling the Individual Portfolio Returns<a class="anchor-link" href="#3.-Modeling-the-Individual-Portfolio-Returns">¶</a></h2><h3 id="3.1-Distributional-Properties-and-Stationarity">3.1 Distributional Properties and Stationarity<a class="anchor-link" href="#3.1-Distributional-Properties-and-Stationarity">¶</a></h3><p>Each portfolio was analyzed with time-series plots, histogram-density plots that overlay fitted Gaussian and Student-t densities, two-panel QQ plots, ACF/PACF, Jarque-Bera tests, Shapiro-Wilk tests, fitted-distribution comparisons, ADF and KPSS tests, Ljung-Box diagnostics, and ARCH-LM tests. Detailed figures are kept in the appendix and the <code>output/figures/individual_returns/</code> folders so the main body can focus on the highest-signal results. The central finding is that the six series are stationary in levels but far from Gaussian, with visible tail risk and volatility clustering even at the monthly frequency.</p>
+<h2 id="3.-Modeling-the-Individual-Portfolio-Returns">3. Modeling the Individual Portfolio Returns<a class="anchor-link" href="#3.-Modeling-the-Individual-Portfolio-Returns">¶</a></h2><h3 id="3.1-Distributional-Properties-and-Stationarity">3.1 Distributional Properties and Stationarity<a class="anchor-link" href="#3.1-Distributional-Properties-and-Stationarity">¶</a></h3><p>Each portfolio was analyzed with time-series plots, histogram-density plots that overlay fitted Gaussian, Student-t, and NIG densities, normal-versus-recommended QQ comparisons, recommended-fit CDF diagnostics, ACF/PACF, Jarque-Bera tests, Shapiro-Wilk tests, MLE-based fitted-distribution comparisons, ADF and KPSS tests, Ljung-Box diagnostics, and ARCH-LM tests. Detailed figures are kept in the appendix and the <code>output/figures/individual_returns/</code> folders so the main body can focus on the highest-signal results. The central finding is that the six series are stationary in levels but far from Gaussian, with visible tail risk and volatility clustering even at the monthly frequency.</p>
 <p><strong>Table 3. Distribution, normality, stationarity, and ARCH diagnostics.</strong></p>
 <table>
 <thead>
@@ -7645,8 +7645,9 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <th>Excess kurtosis</th>
 <th>Jarque-Bera p</th>
 <th>Shapiro-Wilk p</th>
-<th>Best fit</th>
-<th>Student-t df</th>
+<th>Recommended fit</th>
+<th>Best-fit KS p</th>
+<th>AIC gain vs Gaussian</th>
 <th>ADF p</th>
 <th>ARCH-LM p</th>
 </tr>
@@ -7659,7 +7660,8 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 <td>Student-t</td>
-<td>3.99</td>
+<td>0.562</td>
+<td>206.6</td>
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 </tr>
@@ -7670,7 +7672,8 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 <td>Student-t</td>
-<td>3.26</td>
+<td>0.592</td>
+<td>359.5</td>
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 </tr>
@@ -7681,7 +7684,8 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 <td>Student-t</td>
-<td>2.81</td>
+<td>0.692</td>
+<td>494.9</td>
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 </tr>
@@ -7691,8 +7695,9 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>5.20</td>
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
-<td>Student-t</td>
-<td>4.29</td>
+<td>NIG</td>
+<td>0.840</td>
+<td>171.5</td>
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 </tr>
@@ -7703,7 +7708,8 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 <td>Student-t</td>
-<td>3.14</td>
+<td>0.555</td>
+<td>403.2</td>
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 </tr>
@@ -7714,14 +7720,15 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 <td>Student-t</td>
-<td>3.08</td>
+<td>0.512</td>
+<td>432.0</td>
 <td>&lt;0.001</td>
 <td>&lt;0.001</td>
 </tr>
 </tbody>
 </table>
-<p>Table 3 makes the distributional result hard to miss. Jarque-Bera and Shapiro-Wilk p-values are effectively zero across the panel, and the fitted Student-t distribution dominates the fitted Gaussian benchmark in 6 of the 6 portfolios. The most extreme non-normality appears in Small HiBM, where the Student-t fit gains the most ground on AIC and the excess-kurtosis evidence is especially strong. At the same time, ADF p-values strongly reject a unit root for every raw return series, which justifies modeling returns in levels rather than differencing them. ARCH-LM tests also reject homoskedasticity throughout the panel, with the strongest raw-volatility clustering in ME2 BM2.</p>
-<h3 id="3.2-ARIMA-Benchmarks-and-GARCH-Type-Volatility-Models">3.2 ARIMA Benchmarks and GARCH-Type Volatility Models<a class="anchor-link" href="#3.2-ARIMA-Benchmarks-and-GARCH-Type-Volatility-Models">¶</a></h3><p>Given the stationarity evidence, the mean-model search compared low-order AR, MA, and ARIMA specifications using AIC, BIC, residual Ljung-Box tests, and parameter significance. The volatility step now uses the canonical <code>arch</code> package rather than a custom optimizer. For each portfolio, the selected ARIMA residuals were passed to Gaussian and Student-t GARCH(1,1) specifications, and the preferred volatility model was selected using AIC, BIC, standardized-residual diagnostics, and core-parameter significance.</p>
+<p>Table 3 makes the distributional result hard to miss. Jarque-Bera and Shapiro-Wilk p-values are effectively zero across the panel, and heavy-tailed MLE fits dominate the Gaussian benchmark throughout the sample. The recommended marginal-fit counts are NIG: 1, Student-t: 5. The most extreme non-normality appears in Small HiBM, where the recommended Student-t fit gains the most ground on AIC relative to the Gaussian benchmark. At the same time, ADF p-values strongly reject a unit root for every raw return series, which justifies modeling returns in levels rather than differencing them. ARCH-LM tests also reject homoskedasticity throughout the panel, with the strongest raw-volatility clustering in ME2 BM2.</p>
+<h3 id="3.2-ARIMA-Benchmarks-and-GARCH-Type-Volatility-Models">3.2 ARIMA Benchmarks and GARCH-Type Volatility Models<a class="anchor-link" href="#3.2-ARIMA-Benchmarks-and-GARCH-Type-Volatility-Models">¶</a></h3><p>Given the stationarity evidence, the mean-model search compared low-order AR, MA, and ARIMA specifications using AIC, BIC, residual Ljung-Box tests, and parameter significance. The volatility step now uses the canonical <code>arch</code> package rather than a custom optimizer. For each portfolio, the selected ARIMA residuals were passed to Gaussian, Student-t, skewed Student-t, and GED GARCH(1,1) specifications. Preferred-model selection does not rely on one metric alone; it combines AIC/BIC, standardized-residual autocorrelation checks, leftover ARCH diagnostics, innovation KS tests under the assumed distribution, and core-parameter significance.</p>
 <p><strong>Table 4. Selected benchmark mean and volatility models.</strong></p>
 <table>
 <thead>
@@ -7734,6 +7741,7 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <th>GARCH persistence</th>
 <th>Std. sq. resid. LB p (12)</th>
 <th>Std. resid. ARCH-LM p</th>
+<th>Innovation KS p</th>
 </tr>
 </thead>
 <tbody>
@@ -7746,16 +7754,18 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>0.979</td>
 <td>0.958</td>
 <td>0.958</td>
+<td>0.792</td>
 </tr>
 <tr>
 <td>ME1 BM2</td>
 <td>(2, 0, 2)</td>
-<td>Student-t GARCH(1,1)</td>
-<td>Student-t</td>
+<td>Skewed Student-t GARCH(1,1)</td>
+<td>Skewed Student-t</td>
 <td>0.005</td>
-<td>0.970</td>
-<td>0.863</td>
-<td>0.872</td>
+<td>0.974</td>
+<td>0.888</td>
+<td>0.896</td>
+<td>0.621</td>
 </tr>
 <tr>
 <td>Small HiBM</td>
@@ -7766,16 +7776,18 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>0.978</td>
 <td>0.968</td>
 <td>0.968</td>
+<td>0.621</td>
 </tr>
 <tr>
 <td>Big LoBM</td>
 <td>(2, 0, 2)</td>
-<td>Student-t GARCH(1,1)</td>
-<td>Student-t</td>
+<td>Skewed Student-t GARCH(1,1)</td>
+<td>Skewed Student-t</td>
 <td>0.977</td>
-<td>0.967</td>
-<td>0.628</td>
-<td>0.632</td>
+<td>0.969</td>
+<td>0.636</td>
+<td>0.641</td>
+<td>0.777</td>
 </tr>
 <tr>
 <td>ME2 BM2</td>
@@ -7786,6 +7798,7 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>0.962</td>
 <td>0.378</td>
 <td>0.428</td>
+<td>0.263</td>
 </tr>
 <tr>
 <td>Big HiBM</td>
@@ -7796,10 +7809,11 @@ Prepared from the reproducible pipeline in <code>Final Project/</code> on 2026-0
 <td>0.962</td>
 <td>0.611</td>
 <td>0.670</td>
+<td>0.742</td>
 </tr>
 </tbody>
 </table>
-<p>The mean dynamics are modest. Five of the six portfolios select ARIMA(2,0,2), while Small LoBM selects ARIMA(0,0,2). Residual diagnostics are acceptable for the larger, lower-volatility portfolios but remain weaker for ME1 BM2 and Small HiBM, which is why the report does not overstate the quality of purely univariate mean models. The variance dynamics are more striking. GARCH persistence remains high across the six series, and the selected arch-based volatility filters largely remove the leftover second-moment dependence. The Student-t volatility specification is selected in 6 of the 6 portfolios, which matches the heavy-tail evidence already visible in the marginal distribution diagnostics. That pattern aligns with the finance literature: monthly returns are hard to forecast in mean, but their volatility remains persistent and often better captured with non-Gaussian innovations.</p>
+<p>The mean dynamics are modest. Five of the six portfolios select ARIMA(2,0,2), while Small LoBM selects ARIMA(0,0,2). Residual diagnostics are acceptable for the larger, lower-volatility portfolios but remain weaker for ME1 BM2 and Small HiBM, which is why the report does not overstate the quality of purely univariate mean models. The variance dynamics are more striking. GARCH persistence remains high across the six series, and the selected arch-based volatility filters largely remove the leftover second-moment dependence. The selected volatility-model counts are Skewed Student-t: 2, Student-t: 4, which matches the heavy-tail evidence already visible in the marginal distribution diagnostics. That pattern aligns with the finance literature: monthly returns are hard to forecast in mean, but their volatility remains persistent and often better captured with non-Gaussian innovations.</p>
 <h3 id="3.3-Predictive-Models-with-Exogenous-Variables">3.3 Predictive Models with Exogenous Variables<a class="anchor-link" href="#3.3-Predictive-Models-with-Exogenous-Variables">¶</a></h3><p>The predictive extension combines lagged authoritative Fama-French factors with internally constructed signals such as lagged size and value spreads, 12-month rolling market volatility, 12-month momentum, and drawdown-style indicators. Three classes are compared portfolio by portfolio: the selected benchmark ARIMA model, an ARIMAX specification with lagged factors, and a predictive regression with lagged returns plus the broader predictor set. Performance is evaluated both in sample and with a 120-month expanding one-step-ahead forecast exercise using RMSE, MAE, and directional accuracy.</p>
 <p><strong>Table 5. Best predictive model versus the univariate benchmark.</strong></p>
 <table>

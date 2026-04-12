@@ -157,30 +157,68 @@ def _build_distribution_table(stats: pd.DataFrame) -> str:
     table = stats.copy()
     table["Portfolio"] = table["portfolio"].map(PORTFOLIO_LABELS)
     table["Skewness"] = table["skewness"].map(lambda value: f"{value:.2f}")
-    table["Kurtosis"] = table["kurtosis"].map(lambda value: f"{value:.2f}")
+    table["Excess kurtosis"] = table["excess_kurtosis"].map(lambda value: f"{value:.2f}")
     table["Jarque-Bera p"] = table["jarque_bera_pvalue"].map(_format_pvalue)
+    table["Shapiro-Wilk p"] = table["shapiro_wilk_pvalue"].map(_format_pvalue)
+    table["Recommended fit"] = table["best_marginal_fit"]
+    table["Best-fit KS p"] = table["best_marginal_fit_ks_pvalue"].map(_format_pvalue)
+    table["AIC gain vs Gaussian"] = table["best_marginal_fit_aic_gain_vs_normal"].map(lambda value: f"{value:.1f}")
     table["ADF p"] = table["adf_pvalue"].map(_format_pvalue)
     table["ARCH-LM p"] = table["arch_lm_pvalue"].map(_format_pvalue)
     return _markdown_table(
-        table[["Portfolio", "Skewness", "Kurtosis", "Jarque-Bera p", "ADF p", "ARCH-LM p"]]
+        table[
+            [
+                "Portfolio",
+                "Skewness",
+                "Excess kurtosis",
+                "Jarque-Bera p",
+                "Shapiro-Wilk p",
+                "Recommended fit",
+                "Best-fit KS p",
+                "AIC gain vs Gaussian",
+                "ADF p",
+                "ARCH-LM p",
+            ]
+        ]
     )
 
 
 def _build_model_table(models: pd.DataFrame, garch: pd.DataFrame) -> str:
-    merged = models.merge(garch[["portfolio", "persistence", "std_resid_arch_lm_pvalue"]], on="portfolio")
+    merged = models.merge(
+        garch[
+            [
+                "portfolio",
+                "model_label",
+                "distribution",
+                "persistence",
+                "std_resid_sq_lb_pvalue_lag_12",
+                "std_resid_arch_lm_pvalue",
+                "innovation_ks_pvalue",
+            ]
+        ],
+        on="portfolio",
+    )
     merged["Portfolio"] = merged["portfolio"].map(PORTFOLIO_LABELS)
     merged["Selected ARIMA"] = merged["selected_arima_order"]
+    merged["Selected volatility"] = merged["model_label"]
+    merged["Innovation dist."] = merged["distribution"]
     merged["Residual Ljung-Box p (12)"] = merged["residual_lb_pvalue_lag_12"].map(_format_pvalue)
     merged["GARCH persistence"] = merged["persistence"].map(lambda value: f"{value:.3f}")
+    merged["Std. sq. resid. LB p (12)"] = merged["std_resid_sq_lb_pvalue_lag_12"].map(_format_pvalue)
     merged["Std. resid. ARCH-LM p"] = merged["std_resid_arch_lm_pvalue"].map(_format_pvalue)
+    merged["Innovation KS p"] = merged["innovation_ks_pvalue"].map(_format_pvalue)
     return _markdown_table(
         merged[
             [
                 "Portfolio",
                 "Selected ARIMA",
+                "Selected volatility",
+                "Innovation dist.",
                 "Residual Ljung-Box p (12)",
                 "GARCH persistence",
+                "Std. sq. resid. LB p (12)",
                 "Std. resid. ARCH-LM p",
+                "Innovation KS p",
             ]
         ]
     )
@@ -319,8 +357,8 @@ def _compose_appendices() -> str:
 
 The main body cites the highest-signal tables and figures only. To keep the report body compact, the following diagnostics remain in the saved output folders rather than being reproduced inline:
 
-- `output/figures/individual_returns/<portfolio>/`: time-series plots, histograms with density overlays, QQ plots, ACF/PACF, residual diagnostics, and volatility-clustering figures for each portfolio.
-- `output/tables/individual_returns/<portfolio>/`: detailed descriptive statistics, Jarque-Bera output, ADF and KPSS tests, Ljung-Box diagnostics, ARCH-LM tests, and candidate-model comparison tables.
+- `output/figures/individual_returns/<portfolio>/`: time-series plots, histograms with Gaussian/Student-t/NIG overlays, QQ plots, recommended-distribution diagnostics, ACF/PACF, residual diagnostics, and volatility-clustering figures for each portfolio.
+- `output/tables/individual_returns/<portfolio>/`: detailed descriptive statistics, Jarque-Bera and Shapiro-Wilk output, fitted Normal/Student-t/NIG comparisons, ADF and KPSS tests, Ljung-Box diagnostics, ARCH-LM tests, and candidate-model comparison tables.
 - `output/figures/predictive_individual_returns/<portfolio>/`: forecast-comparison figures for the exogenous predictive models.
 - `output/tables/predictive_individual_returns/<portfolio>/`: fitted predictive-model summaries and forecast diagnostics.
 - `output/figures/trading_strategies/var_irf_grid.png`: reduced-form impulse-response overview for the VAR.
@@ -357,8 +395,12 @@ def _compose_final_report(inputs: dict[str, pd.DataFrame], conclusions: str) -> 
     off_diagonal = correlation.where(~np.eye(len(correlation), dtype=bool))
     lowest_corr = off_diagonal.stack().min()
     highest_corr = off_diagonal.stack().max()
-    strongest_jb = stats.loc[stats["jarque_bera_stat"].idxmax()]
+    strongest_non_normal = stats.loc[stats["best_marginal_fit_aic_gain_vs_normal"].idxmax()]
     strongest_arch = stats.loc[stats["arch_lm_stat"].idxmax()]
+    marginal_fit_counts = stats["best_marginal_fit"].value_counts().to_dict()
+    marginal_fit_count_text = ", ".join(f"{name}: {count}" for name, count in sorted(marginal_fit_counts.items()))
+    volatility_fit_counts = garch["distribution"].value_counts().to_dict()
+    volatility_fit_count_text = ", ".join(f"{name}: {count}" for name, count in sorted(volatility_fit_counts.items()))
     stable_var = var_lags.loc[var_lags["selected_bic"]].iloc[0]
     preferred = predictive.loc[predictive["is_preferred_predictive"]].copy()
     benchmark = predictive.loc[predictive["is_benchmark"], ["portfolio", "rmse"]].rename(
@@ -427,23 +469,23 @@ Table 2 shows two patterns that drive the rest of the report. The highest averag
 
 ### 3.1 Distributional Properties and Stationarity
 
-Each portfolio was analyzed with time-series plots, histogram-density plots, QQ plots, ACF/PACF, Jarque-Bera tests, ADF and KPSS tests, Ljung-Box diagnostics, and ARCH-LM tests. Detailed figures are kept in the appendix and the `output/figures/individual_returns/` folders so the main body can focus on the highest-signal results. The central finding is that the six series are stationary in levels but far from Gaussian, with visible tail risk and volatility clustering even at the monthly frequency.
+Each portfolio was analyzed with time-series plots, histogram-density plots that overlay fitted Gaussian, Student-t, and NIG densities, normal-versus-recommended QQ comparisons, recommended-fit CDF diagnostics, ACF/PACF, Jarque-Bera tests, Shapiro-Wilk tests, MLE-based fitted-distribution comparisons, ADF and KPSS tests, Ljung-Box diagnostics, and ARCH-LM tests. Detailed figures are kept in the appendix and the `output/figures/individual_returns/` folders so the main body can focus on the highest-signal results. The central finding is that the six series are stationary in levels but far from Gaussian, with visible tail risk and volatility clustering even at the monthly frequency.
 
 **Table 3. Distribution, normality, stationarity, and ARCH diagnostics.**
 
 {_build_distribution_table(stats)}
 
-Table 3 makes the distributional result hard to miss. Jarque-Bera p-values are effectively zero for all six portfolios, so Gaussian return innovations are not supported empirically. The most extreme non-normality appears in {PORTFOLIO_LABELS[strongest_jb["portfolio"]]}, which combines strong positive skewness with very high kurtosis. At the same time, ADF p-values strongly reject a unit root for every raw return series, which justifies modeling returns in levels rather than differencing them. ARCH-LM tests also reject homoskedasticity throughout the panel, with the strongest raw-volatility clustering in {PORTFOLIO_LABELS[strongest_arch["portfolio"]]}.
+Table 3 makes the distributional result hard to miss. Jarque-Bera and Shapiro-Wilk p-values are effectively zero across the panel, and heavy-tailed MLE fits dominate the Gaussian benchmark throughout the sample. The recommended marginal-fit counts are {marginal_fit_count_text}. The most extreme non-normality appears in {PORTFOLIO_LABELS[strongest_non_normal["portfolio"]]}, where the recommended {strongest_non_normal["best_marginal_fit"]} fit gains the most ground on AIC relative to the Gaussian benchmark. At the same time, ADF p-values strongly reject a unit root for every raw return series, which justifies modeling returns in levels rather than differencing them. ARCH-LM tests also reject homoskedasticity throughout the panel, with the strongest raw-volatility clustering in {PORTFOLIO_LABELS[strongest_arch["portfolio"]]}.
 
 ### 3.2 ARIMA Benchmarks and GARCH-Type Volatility Models
 
-Given the stationarity evidence, the mean-model search compared low-order AR, MA, and ARIMA specifications using AIC, BIC, residual Ljung-Box tests, and parameter significance. Because the `arch` package is unavailable in the required environment, the volatility step uses a lightweight Gaussian GARCH(1,1) estimator implemented with `scipy.optimize`. This fallback is narrower than the full `arch` ecosystem, but it is still suitable for comparing volatility persistence and checking whether standardized residuals retain ARCH effects.
+Given the stationarity evidence, the mean-model search compared low-order AR, MA, and ARIMA specifications using AIC, BIC, residual Ljung-Box tests, and parameter significance. The volatility step now uses the canonical `arch` package rather than a custom optimizer. For each portfolio, the selected ARIMA residuals were passed to Gaussian, Student-t, skewed Student-t, and GED GARCH(1,1) specifications. Preferred-model selection does not rely on one metric alone; it combines AIC/BIC, standardized-residual autocorrelation checks, leftover ARCH diagnostics, innovation KS tests under the assumed distribution, and core-parameter significance.
 
 **Table 4. Selected benchmark mean and volatility models.**
 
 {_build_model_table(models, garch)}
 
-The mean dynamics are modest. Five of the six portfolios select ARIMA(2,0,2), while Small LoBM selects ARIMA(0,0,2). Residual diagnostics are acceptable for the larger, lower-volatility portfolios but remain weaker for ME1 BM2 and Small HiBM, which is why the report does not overstate the quality of purely univariate mean models. The variance dynamics are more striking. GARCH persistence lies between about 0.968 and 0.980 across the six series, and the ARCH-LM tests on standardized residuals are all comfortably insignificant, so the hand-rolled GARCH step removes most of the leftover second-moment dependence. That pattern aligns with the finance literature: monthly returns are hard to forecast in mean, but their volatility remains persistent.
+The mean dynamics are modest. Five of the six portfolios select ARIMA(2,0,2), while Small LoBM selects ARIMA(0,0,2). Residual diagnostics are acceptable for the larger, lower-volatility portfolios but remain weaker for ME1 BM2 and Small HiBM, which is why the report does not overstate the quality of purely univariate mean models. The variance dynamics are more striking. GARCH persistence remains high across the six series, and the selected arch-based volatility filters largely remove the leftover second-moment dependence. The selected volatility-model counts are {volatility_fit_count_text}, which matches the heavy-tail evidence already visible in the marginal distribution diagnostics. That pattern aligns with the finance literature: monthly returns are hard to forecast in mean, but their volatility remains persistent and often better captured with non-Gaussian innovations.
 
 ### 3.3 Predictive Models with Exogenous Variables
 

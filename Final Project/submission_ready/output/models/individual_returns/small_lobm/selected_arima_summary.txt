@@ -3,7 +3,7 @@
 Dep. Variable:     small_lobm_vwret_pct   No. Observations:                 1195
 Model:                   ARIMA(0, 0, 2)   Log Likelihood               -4069.617
 Date:                  Sun, 12 Apr 2026   AIC                           8147.234
-Time:                          12:09:57   BIC                           8167.568
+Time:                          19:18:43   BIC                           8167.568
 Sample:                               0   HQIC                          8154.896
                                  - 1195                                         
 Covariance Type:                    opg                                         

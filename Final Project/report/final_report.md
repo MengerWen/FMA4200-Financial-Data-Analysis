@@ -64,37 +64,37 @@ Table 2 shows two patterns that drive the rest of the report. The highest averag
 
 ### 3.1 Distributional Properties and Stationarity
 
-Each portfolio was analyzed with time-series plots, histogram-density plots that overlay fitted Gaussian and Student-t densities, two-panel QQ plots, ACF/PACF, Jarque-Bera tests, Shapiro-Wilk tests, fitted-distribution comparisons, ADF and KPSS tests, Ljung-Box diagnostics, and ARCH-LM tests. Detailed figures are kept in the appendix and the `output/figures/individual_returns/` folders so the main body can focus on the highest-signal results. The central finding is that the six series are stationary in levels but far from Gaussian, with visible tail risk and volatility clustering even at the monthly frequency.
+Each portfolio was analyzed with time-series plots, histogram-density plots that overlay fitted Gaussian, Student-t, and NIG densities, normal-versus-recommended QQ comparisons, recommended-fit CDF diagnostics, ACF/PACF, Jarque-Bera tests, Shapiro-Wilk tests, MLE-based fitted-distribution comparisons, ADF and KPSS tests, Ljung-Box diagnostics, and ARCH-LM tests. Detailed figures are kept in the appendix and the `output/figures/individual_returns/` folders so the main body can focus on the highest-signal results. The central finding is that the six series are stationary in levels but far from Gaussian, with visible tail risk and volatility clustering even at the monthly frequency.
 
 **Table 3. Distribution, normality, stationarity, and ARCH diagnostics.**
 
-| Portfolio | Skewness | Excess kurtosis | Jarque-Bera p | Shapiro-Wilk p | Best fit | Student-t df | ADF p | ARCH-LM p |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Small LoBM | 0.57 | 6.92 | <0.001 | <0.001 | Student-t | 3.99 | <0.001 | <0.001 |
-| ME1 BM2 | 1.10 | 13.41 | <0.001 | <0.001 | Student-t | 3.26 | <0.001 | <0.001 |
-| Small HiBM | 1.96 | 20.85 | <0.001 | <0.001 | Student-t | 2.81 | <0.001 | <0.001 |
-| Big LoBM | -0.13 | 5.20 | <0.001 | <0.001 | Student-t | 4.29 | <0.001 | <0.001 |
-| ME2 BM2 | 1.16 | 17.20 | <0.001 | <0.001 | Student-t | 3.14 | <0.001 | <0.001 |
-| Big HiBM | 1.44 | 17.45 | <0.001 | <0.001 | Student-t | 3.08 | <0.001 | <0.001 |
+| Portfolio | Skewness | Excess kurtosis | Jarque-Bera p | Shapiro-Wilk p | Recommended fit | Best-fit KS p | AIC gain vs Gaussian | ADF p | ARCH-LM p |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Small LoBM | 0.57 | 6.92 | <0.001 | <0.001 | Student-t | 0.562 | 206.6 | <0.001 | <0.001 |
+| ME1 BM2 | 1.10 | 13.41 | <0.001 | <0.001 | Student-t | 0.592 | 359.5 | <0.001 | <0.001 |
+| Small HiBM | 1.96 | 20.85 | <0.001 | <0.001 | Student-t | 0.692 | 494.9 | <0.001 | <0.001 |
+| Big LoBM | -0.13 | 5.20 | <0.001 | <0.001 | NIG | 0.840 | 171.5 | <0.001 | <0.001 |
+| ME2 BM2 | 1.16 | 17.20 | <0.001 | <0.001 | Student-t | 0.555 | 403.2 | <0.001 | <0.001 |
+| Big HiBM | 1.44 | 17.45 | <0.001 | <0.001 | Student-t | 0.512 | 432.0 | <0.001 | <0.001 |
 
-Table 3 makes the distributional result hard to miss. Jarque-Bera and Shapiro-Wilk p-values are effectively zero across the panel, and the fitted Student-t distribution dominates the fitted Gaussian benchmark in 6 of the 6 portfolios. The most extreme non-normality appears in Small HiBM, where the Student-t fit gains the most ground on AIC and the excess-kurtosis evidence is especially strong. At the same time, ADF p-values strongly reject a unit root for every raw return series, which justifies modeling returns in levels rather than differencing them. ARCH-LM tests also reject homoskedasticity throughout the panel, with the strongest raw-volatility clustering in ME2 BM2.
+Table 3 makes the distributional result hard to miss. Jarque-Bera and Shapiro-Wilk p-values are effectively zero across the panel, and heavy-tailed MLE fits dominate the Gaussian benchmark throughout the sample. The recommended marginal-fit counts are NIG: 1, Student-t: 5. The most extreme non-normality appears in Small HiBM, where the recommended Student-t fit gains the most ground on AIC relative to the Gaussian benchmark. At the same time, ADF p-values strongly reject a unit root for every raw return series, which justifies modeling returns in levels rather than differencing them. ARCH-LM tests also reject homoskedasticity throughout the panel, with the strongest raw-volatility clustering in ME2 BM2.
 
 ### 3.2 ARIMA Benchmarks and GARCH-Type Volatility Models
 
-Given the stationarity evidence, the mean-model search compared low-order AR, MA, and ARIMA specifications using AIC, BIC, residual Ljung-Box tests, and parameter significance. The volatility step now uses the canonical `arch` package rather than a custom optimizer. For each portfolio, the selected ARIMA residuals were passed to Gaussian and Student-t GARCH(1,1) specifications, and the preferred volatility model was selected using AIC, BIC, standardized-residual diagnostics, and core-parameter significance.
+Given the stationarity evidence, the mean-model search compared low-order AR, MA, and ARIMA specifications using AIC, BIC, residual Ljung-Box tests, and parameter significance. The volatility step now uses the canonical `arch` package rather than a custom optimizer. For each portfolio, the selected ARIMA residuals were passed to Gaussian, Student-t, skewed Student-t, and GED GARCH(1,1) specifications. Preferred-model selection does not rely on one metric alone; it combines AIC/BIC, standardized-residual autocorrelation checks, leftover ARCH diagnostics, innovation KS tests under the assumed distribution, and core-parameter significance.
 
 **Table 4. Selected benchmark mean and volatility models.**
 
-| Portfolio | Selected ARIMA | Selected volatility | Innovation dist. | Residual Ljung-Box p (12) | GARCH persistence | Std. sq. resid. LB p (12) | Std. resid. ARCH-LM p |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Small LoBM | (0, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.314 | 0.979 | 0.958 | 0.958 |
-| ME1 BM2 | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.005 | 0.970 | 0.863 | 0.872 |
-| Small HiBM | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.002 | 0.978 | 0.968 | 0.968 |
-| Big LoBM | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.977 | 0.967 | 0.628 | 0.632 |
-| ME2 BM2 | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.057 | 0.962 | 0.378 | 0.428 |
-| Big HiBM | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.067 | 0.962 | 0.611 | 0.670 |
+| Portfolio | Selected ARIMA | Selected volatility | Innovation dist. | Residual Ljung-Box p (12) | GARCH persistence | Std. sq. resid. LB p (12) | Std. resid. ARCH-LM p | Innovation KS p |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Small LoBM | (0, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.314 | 0.979 | 0.958 | 0.958 | 0.792 |
+| ME1 BM2 | (2, 0, 2) | Skewed Student-t GARCH(1,1) | Skewed Student-t | 0.005 | 0.974 | 0.888 | 0.896 | 0.621 |
+| Small HiBM | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.002 | 0.978 | 0.968 | 0.968 | 0.621 |
+| Big LoBM | (2, 0, 2) | Skewed Student-t GARCH(1,1) | Skewed Student-t | 0.977 | 0.969 | 0.636 | 0.641 | 0.777 |
+| ME2 BM2 | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.057 | 0.962 | 0.378 | 0.428 | 0.263 |
+| Big HiBM | (2, 0, 2) | Student-t GARCH(1,1) | Student-t | 0.067 | 0.962 | 0.611 | 0.670 | 0.742 |
 
-The mean dynamics are modest. Five of the six portfolios select ARIMA(2,0,2), while Small LoBM selects ARIMA(0,0,2). Residual diagnostics are acceptable for the larger, lower-volatility portfolios but remain weaker for ME1 BM2 and Small HiBM, which is why the report does not overstate the quality of purely univariate mean models. The variance dynamics are more striking. GARCH persistence remains high across the six series, and the selected arch-based volatility filters largely remove the leftover second-moment dependence. The Student-t volatility specification is selected in 6 of the 6 portfolios, which matches the heavy-tail evidence already visible in the marginal distribution diagnostics. That pattern aligns with the finance literature: monthly returns are hard to forecast in mean, but their volatility remains persistent and often better captured with non-Gaussian innovations.
+The mean dynamics are modest. Five of the six portfolios select ARIMA(2,0,2), while Small LoBM selects ARIMA(0,0,2). Residual diagnostics are acceptable for the larger, lower-volatility portfolios but remain weaker for ME1 BM2 and Small HiBM, which is why the report does not overstate the quality of purely univariate mean models. The variance dynamics are more striking. GARCH persistence remains high across the six series, and the selected arch-based volatility filters largely remove the leftover second-moment dependence. The selected volatility-model counts are Skewed Student-t: 2, Student-t: 4, which matches the heavy-tail evidence already visible in the marginal distribution diagnostics. That pattern aligns with the finance literature: monthly returns are hard to forecast in mean, but their volatility remains persistent and often better captured with non-Gaussian innovations.
 
 ### 3.3 Predictive Models with Exogenous Variables
 
