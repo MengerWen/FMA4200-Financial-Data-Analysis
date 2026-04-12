@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import textwrap
@@ -30,6 +31,12 @@ from .config import (
     EXPORT_NOTES_PATH,
     FINAL_APPENDICES_PATH,
     FINAL_REPORT_HTML_PATH,
+    GUIDANCE_LECTURE_MAPPING_PATH,
+    GUIDANCE_PATH,
+    LECTURE_01_PATH,
+    LECTURE_02_PATH,
+    LECTURE_03_PATH,
+    LECTURE_04_PATH,
     FINAL_REPORT_LOG_PATH,
     FINAL_REPORT_MD_PATH,
     FINAL_REPORT_NOTEBOOK_PATH,
@@ -42,7 +49,8 @@ from .config import (
     RAW_DATA_PATH,
     REFERENCES_PATH,
     REPORT_DIR,
-    REPORT_SECTIONS_DIR,
+    SECTION_03_PATH,
+    SECTION_05_PATH,
     STAT_ARB_SIGNAL_PATH,
     STRATEGY_METRICS_PATH,
     SUMMARY_SNAPSHOT_PATH,
@@ -59,13 +67,6 @@ PORTFOLIO_LABELS = {
     "me2_bm2_vwret_pct": "ME2 BM2",
     "big_hibm_vwret_pct": "Big HiBM",
 }
-
-SHORT_MODEL_LABELS = {
-    "Benchmark ARIMA": "Benchmark ARIMA",
-    "ARIMAX with lagged Fama-French factors": "ARIMAX",
-    "Predictive regression with lagged factors and internal signals": "Predictive regression",
-}
-
 
 def _relative_to_report(path: Path) -> str:
     return Path(os.path.relpath(path, REPORT_DIR)).as_posix()
@@ -98,6 +99,29 @@ def _markdown_table(dataframe: pd.DataFrame) -> str:
     for row in rows:
         table_lines.append("| " + " | ".join(row) + " |")
     return "\n".join(table_lines)
+
+
+def _bump_markdown_headings(text: str, levels: int = 1) -> str:
+    output_lines: list[str] = []
+    for line in text.splitlines():
+        match = re.match(r"^(#{1,6})\s+(.*)$", line)
+        if match:
+            heading_level = min(len(match.group(1)) + levels, 6)
+            output_lines.append("#" * heading_level + " " + match.group(2))
+        else:
+            output_lines.append(line)
+    return "\n".join(output_lines)
+
+
+def _render_section_source(path: Path, heading: str) -> str:
+    text = path.read_text(encoding="utf-8").strip()
+    nested = _bump_markdown_headings(text, levels=1)
+    lines = nested.splitlines()
+    for idx, line in enumerate(lines):
+        if re.match(r"^#{2,6}\s+", line):
+            lines[idx] = heading
+            break
+    return "\n".join(lines).strip()
 
 
 def _load_report_inputs() -> dict[str, pd.DataFrame]:
@@ -148,107 +172,6 @@ def _build_summary_table(summary: pd.DataFrame) -> str:
                 "Annualized mean (%)",
                 "Volatility (%)",
                 "Annualized volatility (%)",
-            ]
-        ]
-    )
-
-
-def _build_distribution_table(stats: pd.DataFrame) -> str:
-    table = stats.copy()
-    table["Portfolio"] = table["portfolio"].map(PORTFOLIO_LABELS)
-    table["Skewness"] = table["skewness"].map(lambda value: f"{value:.2f}")
-    table["Excess kurtosis"] = table["excess_kurtosis"].map(lambda value: f"{value:.2f}")
-    table["Jarque-Bera p"] = table["jarque_bera_pvalue"].map(_format_pvalue)
-    table["Shapiro-Wilk p"] = table["shapiro_wilk_pvalue"].map(_format_pvalue)
-    table["Recommended fit"] = table["best_marginal_fit"]
-    table["Best-fit KS p"] = table["best_marginal_fit_ks_pvalue"].map(_format_pvalue)
-    table["AIC gain vs Gaussian"] = table["best_marginal_fit_aic_gain_vs_normal"].map(lambda value: f"{value:.1f}")
-    table["ADF p"] = table["adf_pvalue"].map(_format_pvalue)
-    table["ARCH-LM p"] = table["arch_lm_pvalue"].map(_format_pvalue)
-    return _markdown_table(
-        table[
-            [
-                "Portfolio",
-                "Skewness",
-                "Excess kurtosis",
-                "Jarque-Bera p",
-                "Shapiro-Wilk p",
-                "Recommended fit",
-                "Best-fit KS p",
-                "AIC gain vs Gaussian",
-                "ADF p",
-                "ARCH-LM p",
-            ]
-        ]
-    )
-
-
-def _build_model_table(models: pd.DataFrame, garch: pd.DataFrame) -> str:
-    merged = models.merge(
-        garch[
-            [
-                "portfolio",
-                "model_label",
-                "distribution",
-                "persistence",
-                "std_resid_sq_lb_pvalue_lag_12",
-                "std_resid_arch_lm_pvalue",
-                "innovation_ks_pvalue",
-            ]
-        ],
-        on="portfolio",
-    )
-    merged["Portfolio"] = merged["portfolio"].map(PORTFOLIO_LABELS)
-    merged["Selected ARIMA"] = merged["selected_arima_order"]
-    merged["Selected volatility"] = merged["model_label"]
-    merged["Innovation dist."] = merged["distribution"]
-    merged["Residual Ljung-Box p (12)"] = merged["residual_lb_pvalue_lag_12"].map(_format_pvalue)
-    merged["GARCH persistence"] = merged["persistence"].map(lambda value: f"{value:.3f}")
-    merged["Std. sq. resid. LB p (12)"] = merged["std_resid_sq_lb_pvalue_lag_12"].map(_format_pvalue)
-    merged["Std. resid. ARCH-LM p"] = merged["std_resid_arch_lm_pvalue"].map(_format_pvalue)
-    merged["Innovation KS p"] = merged["innovation_ks_pvalue"].map(_format_pvalue)
-    return _markdown_table(
-        merged[
-            [
-                "Portfolio",
-                "Selected ARIMA",
-                "Selected volatility",
-                "Innovation dist.",
-                "Residual Ljung-Box p (12)",
-                "GARCH persistence",
-                "Std. sq. resid. LB p (12)",
-                "Std. resid. ARCH-LM p",
-                "Innovation KS p",
-            ]
-        ]
-    )
-
-
-def _build_predictive_table(predictive: pd.DataFrame) -> str:
-    benchmark = predictive.loc[predictive["is_benchmark"]].copy()
-    preferred = predictive.loc[predictive["is_preferred_predictive"]].copy()
-    merged = preferred.merge(
-        benchmark[["portfolio", "rmse"]].rename(columns={"rmse": "benchmark_rmse"}),
-        on="portfolio",
-        how="left",
-    )
-    merged["Portfolio"] = merged["portfolio"].map(PORTFOLIO_LABELS)
-    merged["Preferred model"] = merged["model_label"].map(lambda value: SHORT_MODEL_LABELS.get(value, value))
-    merged["Benchmark RMSE"] = merged["benchmark_rmse"].map(lambda value: f"{value:.3f}")
-    merged["Predictive RMSE"] = merged["rmse"].map(lambda value: f"{value:.3f}")
-    merged["RMSE gain vs. benchmark (%)"] = (
-        ((merged["benchmark_rmse"] - merged["rmse"]) / merged["benchmark_rmse"]) * 100.0
-    ).map(lambda value: f"{value:.2f}")
-    merged["Directional accuracy"] = merged["directional_accuracy"].map(lambda value: f"{value:.3f}")
-    return _markdown_table(
-        merged[
-            [
-                "Portfolio",
-                "Preferred model",
-                "Benchmark RMSE",
-                "Predictive RMSE",
-                "RMSE gain vs. benchmark (%)",
-                "Directional accuracy",
             ]
         ]
     )
@@ -376,12 +299,83 @@ All tables, figures, cleaned datasets, and report outputs in this project are ge
     return textwrap.dedent(extra_appendix).strip() + "\n"
 
 
-def _compose_final_report(inputs: dict[str, pd.DataFrame], conclusions: str) -> str:
+def build_guidance_lecture_mapping() -> str:
+    mapping_text = f"""
+# Guidance and Lecture Mapping
+
+## Purpose
+
+This note is an audit aid for keeping the implementation, saved outputs, and final report aligned with `{GUIDANCE_PATH.name}` and the course lecture materials. It is not a replacement for the report itself. Its main role is to make the source-of-truth chain explicit so that future reruns do not update a section draft while leaving `report/final_report.md` behind.
+
+## Source-of-Truth Rule
+
+- `report/sections/03_individual_returns_modeling.md` and `report/sections/appendix_individual_returns_modeling.md` are generated from the shared Section 3 writers in `src/fma4200_project/univariate_modeling.py`.
+- `src/fma4200_project/predictive_modeling.py` no longer maintains a separate Section 3 writer; it calls the shared Section 3 writer so the predictive stage extends the same document instead of overwriting it with a parallel draft.
+- `src/fma4200_project/final_report_builder.py` now reads the generated Section 3 and conclusion source files when building `report/final_report.md`, so the final report reflects the latest section source instead of a duplicated hardcoded narrative.
+
+## Guidance-to-Implementation Map
+
+| Guidance requirement | Lecture knowledge point | Main code file(s) | Main output file(s) | Final report section |
+| --- | --- | --- | --- | --- |
+| Introduction: motivation, background, literature, contributions, key findings | Course framing plus empirical-finance literature context | `report/sections/01_introduction.md`, `src/fma4200_project/final_report_builder.py` | `report/final_report.md`, `report/references.md` | `Introduction` |
+| Data source, cleaning, variable definitions, sample description | Data handling and return conventions from course setup | `src/fma4200_project/data_pipeline.py`, `scripts/clean_data.py` | `data/processed/monthly_portfolio_returns_clean.csv`, `data/processed/data_dictionary.csv`, `output/tables/descriptive_statistics_pct.csv`, `output/figures/monthly_returns_overview.png` | `Data Source and Processing` |
+| Section 3: distributional properties of each portfolio | `{LECTURE_01_PATH.name}`, `{LECTURE_02_PATH.name}` | `src/fma4200_project/univariate_modeling.py`, `scripts/run_individual_modeling.py` | `output/tables/individual_returns/portfolio_statistical_test_summary.csv`, `output/figures/individual_returns/`, `output/models/individual_returns/` | `Modeling the Individual Portfolio Returns` |
+| Section 3: AR/MA/ARMA/ARIMA/GARCH diagnostics | `{LECTURE_02_PATH.name}` | `src/fma4200_project/univariate_modeling.py` | `output/tables/individual_returns/portfolio_model_comparison_summary.csv`, `output/tables/individual_returns/portfolio_garch_summary.csv` | `Modeling the Individual Portfolio Returns` |
+| Section 3: predictive modeling with exogenous variables | Predictive regressions and conditional mean design consistent with Lecture 2 time-series workflow | `src/fma4200_project/predictive_modeling.py`, `scripts/run_predictive_modeling.py` | `data/processed/predictor_dataset_monthly.csv`, `output/tables/predictive_individual_returns/predictive_model_summary.csv`, `output/tables/predictive_individual_returns/predictive_forecast_metrics.csv` | `Modeling the Individual Portfolio Returns` |
+| Section 4: joint multivariate modeling and cointegration | `{LECTURE_03_PATH.name}` | `src/fma4200_project/trading_strategies.py`, `scripts/run_trading_strategies.py` | `output/tables/trading_strategies/var_lag_selection.csv`, `output/tables/trading_strategies/cointegration_summary.csv`, `output/figures/trading_strategies/` | `Trading Strategies` |
+| Section 4: statistical arbitrage backtest | `{LECTURE_03_PATH.name}` statistical-arbitrage and cointegration material | `src/fma4200_project/trading_strategies.py` | `output/tables/trading_strategies/stat_arb_backtest.csv`, `output/tables/trading_strategies/stat_arb_signals.csv`, `output/models/trading_strategies/strategy_rules.md` | `Trading Strategies` |
+| Section 4: mean-variance frontier and improved allocation rules | `{LECTURE_04_PATH.name}` | `src/fma4200_project/trading_strategies.py` | `output/tables/trading_strategies/strategy_metrics.csv`, `output/tables/trading_strategies/efficient_frontier_points.csv`, `output/figures/trading_strategies/efficient_frontier.png` | `Trading Strategies` |
+| Conclusions, references, formatting, reproducibility | Report integration and submission requirements in `Guidance.md` | `src/fma4200_project/final_report_builder.py`, `scripts/build_final_report.py`, `scripts/audit_and_prepare_submission.py` | `report/final_report.md`, `report/final_report.pdf`, `report/final_appendices.md`, `SUBMISSION_RUNBOOK.md` | `Conclusions`, `References`, `Appendices` |
+
+## Section 3: Exact Lecture-Method Mapping
+
+### Lecture 1 to Section 3
+
+- `{LECTURE_01_PATH.name}` motivates the single-series distribution workflow used in Section 3: mean, median, standard deviation, skewness, kurtosis, and key quantiles.
+- The lecture's fitted-distribution logic is used directly in `src/fma4200_project/univariate_modeling.py` through MLE-based comparisons of `Normal`, `Student-t`, and `NIG`, together with log-likelihood, AIC, BIC, and KS goodness-of-fit checks.
+- The lecture's graphical diagnostics are reflected in `output/figures/individual_returns/<portfolio>/histogram_density.png`, `qq_plot.png`, and `recommended_distribution_diagnostic.png`.
+- The lecture's normality-testing emphasis is reflected in the saved Jarque-Bera and Shapiro-Wilk outputs and in `output/tables/individual_returns/<portfolio>/distribution_fit_comparison.csv`.
+
+### Lecture 2 to Section 3
+
+- `{LECTURE_02_PATH.name}` provides the stationarity and serial-dependence toolkit used for ADF, KPSS, ACF/PACF, and Ljung-Box diagnostics.
+- The lecture's AR, MA, ARMA, and ARIMA identification logic is implemented in `src/fma4200_project/univariate_modeling.py` through a small interpretable candidate grid, explicit residual diagnostics, and tie-breaking based on fit and parsimony.
+- The lecture's GARCH estimation and innovation-distribution discussion is mapped to the canonical `arch` implementation comparing Gaussian, Student-t, Skewed Student-t, and GED GARCH(1,1) models.
+- The lecture's residual-diagnostics logic is reflected in `output/figures/individual_returns/<portfolio>/garch_diagnostics.png` and `output/tables/individual_returns/<portfolio>/garch_candidate_models.csv`.
+- The predictive extension stays within the same Lecture 2 time-series framework by comparing ARIMA benchmarks with ARIMAX and predictive-regression variants under both in-sample and expanding out-of-sample evaluation.
+
+## Section 4 and Section 5: Lecture Mapping
+
+### Section 4 to Lecture 3
+
+- `{LECTURE_03_PATH.name}` maps directly to the VAR stage: lag selection, stability checks, residual whiteness checks, and reduced-form impulse-response / FEVD interpretation.
+- The same lecture provides the conceptual warning that raw returns are stationary, so cointegration should be tested on a defensible nonstationary representation such as cumulative log wealth, not on raw returns themselves.
+- Johansen-style multivariate cointegration and spread-based statistical arbitrage in `src/fma4200_project/trading_strategies.py` are the course-aligned implementations of Lecture 3's cointegration and stat-arb material.
+- The saved evidence is concentrated in `output/tables/trading_strategies/var_*.csv`, `cointegration_*.csv`, `stat_arb_*.csv`, and `output/models/trading_strategies/strategy_rules.md`.
+
+### Section 5 to Lecture 4
+
+- `{LECTURE_04_PATH.name}` maps directly to the efficient-frontier and rolling mean-variance backtest stage.
+- The plug-in allocator implements the lecture's sample mean-variance logic, while the improved allocator follows the lecture's practical-improvement message by adding shrinkage, no-short / bounded weights, and turnover control.
+- Equal weight is kept as the lecture-consistent benchmark that highlights estimation-error fragility in unconstrained optimization.
+- The corresponding evidence is in `output/tables/trading_strategies/strategy_metrics.csv`, `strategy_weights.csv`, `efficient_frontier_points.csv`, and the efficient-frontier / cumulative-wealth figures.
+
+## Most Important Alignment Conclusion
+
+The key alignment result is that the project now follows a clean one-directional chain:
+
+1. Shared pipeline writers generate the canonical section drafts.
+2. `final_report_builder.py` consumes those canonical section sources for the most actively regenerated parts of the report, especially Section 3 and the conclusions.
+3. The saved outputs cited in the report are produced by the same modeling scripts that write the section text.
+
+That chain is what prevents the earlier drift problem in which Section 3 diagnostics changed in the pipeline but `report/final_report.md` still carried stale volatility and distribution language.
+"""
+    GUIDANCE_LECTURE_MAPPING_PATH.write_text(textwrap.dedent(mapping_text).strip() + "\n", encoding="utf-8")
+    return str(GUIDANCE_LECTURE_MAPPING_PATH)
+
+
+def _compose_final_report(inputs: dict[str, pd.DataFrame]) -> str:
     summary = inputs["summary"]
-    stats = inputs["stats"]
-    models = inputs["models"]
-    garch = inputs["garch"]
-    predictive = inputs["predictive"]
     strategy_metrics = inputs["strategy_metrics"]
     var_lags = inputs["var_lags"]
     var_diag = inputs["var_diag"]
@@ -395,27 +389,15 @@ def _compose_final_report(inputs: dict[str, pd.DataFrame], conclusions: str) -> 
     off_diagonal = correlation.where(~np.eye(len(correlation), dtype=bool))
     lowest_corr = off_diagonal.stack().min()
     highest_corr = off_diagonal.stack().max()
-    strongest_non_normal = stats.loc[stats["best_marginal_fit_aic_gain_vs_normal"].idxmax()]
-    strongest_arch = stats.loc[stats["arch_lm_stat"].idxmax()]
-    marginal_fit_counts = stats["best_marginal_fit"].value_counts().to_dict()
-    marginal_fit_count_text = ", ".join(f"{name}: {count}" for name, count in sorted(marginal_fit_counts.items()))
-    volatility_fit_counts = garch["distribution"].value_counts().to_dict()
-    volatility_fit_count_text = ", ".join(f"{name}: {count}" for name, count in sorted(volatility_fit_counts.items()))
     stable_var = var_lags.loc[var_lags["selected_bic"]].iloc[0]
-    preferred = predictive.loc[predictive["is_preferred_predictive"]].copy()
-    benchmark = predictive.loc[predictive["is_benchmark"], ["portfolio", "rmse"]].rename(
-        columns={"rmse": "benchmark_rmse"}
-    )
-    preferred = preferred.merge(benchmark, on="portfolio", how="left")
-    preferred["rmse_gain"] = (preferred["benchmark_rmse"] - preferred["rmse"]) / preferred["benchmark_rmse"]
-    best_predictive_gain = preferred.loc[preferred["rmse_gain"].idxmax()]
-    best_predictive_count = int((preferred["rmse_gain"] > 0).sum())
     metrics_indexed = strategy_metrics.set_index("strategy")
     plugin = metrics_indexed.loc["mv_plugin_sample"]
     improved = metrics_indexed.loc["mv_improved_shrinkage"]
     equal_weight = metrics_indexed.loc["equal_weight"]
     stat_arb = metrics_indexed.loc["stat_arb_cointegration"]
     rolling_rank_share = float((stat_arb_signals["rank"] > 0).mean())
+    rendered_section_03 = _render_section_source(SECTION_03_PATH, "## 3. Modeling the Individual Portfolio Returns")
+    rendered_section_05 = _render_section_source(SECTION_05_PATH, "## 5. Conclusions")
 
     final_text = f"""
 # Final Report
@@ -465,37 +447,7 @@ The cleaned sample spans July 1926 through January 2026 and contains 1,195 month
 
 Table 2 shows two patterns that drive the rest of the report. The highest average return belongs to {PORTFOLIO_LABELS[small_value["portfolio"]]} at {_format_pct(small_value["mean_pct"])} per month, but it is also the most volatile at {_format_pct(small_value["std_pct"])} per month. At the other end, {PORTFOLIO_LABELS[big_growth["portfolio"]]} is much less volatile at {_format_pct(big_growth["std_pct"])} per month. The pairwise correlation range, from about {_format_float(lowest_corr)} to {_format_float(highest_corr)}, is high enough to motivate joint modeling and efficient-frontier analysis while still leaving room for relative-value spreads and diversification.
 
-## 3. Modeling the Individual Portfolio Returns
-
-### 3.1 Distributional Properties and Stationarity
-
-Each portfolio was analyzed with time-series plots, histogram-density plots that overlay fitted Gaussian, Student-t, and NIG densities, normal-versus-recommended QQ comparisons, recommended-fit CDF diagnostics, ACF/PACF, Jarque-Bera tests, Shapiro-Wilk tests, MLE-based fitted-distribution comparisons, ADF and KPSS tests, Ljung-Box diagnostics, and ARCH-LM tests. Detailed figures are kept in the appendix and the `output/figures/individual_returns/` folders so the main body can focus on the highest-signal results. The central finding is that the six series are stationary in levels but far from Gaussian, with visible tail risk and volatility clustering even at the monthly frequency.
-
-**Table 3. Distribution, normality, stationarity, and ARCH diagnostics.**
-
-{_build_distribution_table(stats)}
-
-Table 3 makes the distributional result hard to miss. Jarque-Bera and Shapiro-Wilk p-values are effectively zero across the panel, and heavy-tailed MLE fits dominate the Gaussian benchmark throughout the sample. The recommended marginal-fit counts are {marginal_fit_count_text}. The most extreme non-normality appears in {PORTFOLIO_LABELS[strongest_non_normal["portfolio"]]}, where the recommended {strongest_non_normal["best_marginal_fit"]} fit gains the most ground on AIC relative to the Gaussian benchmark. At the same time, ADF p-values strongly reject a unit root for every raw return series, which justifies modeling returns in levels rather than differencing them. ARCH-LM tests also reject homoskedasticity throughout the panel, with the strongest raw-volatility clustering in {PORTFOLIO_LABELS[strongest_arch["portfolio"]]}.
-
-### 3.2 ARIMA Benchmarks and GARCH-Type Volatility Models
-
-Given the stationarity evidence, the mean-model search compared low-order AR, MA, and ARIMA specifications using AIC, BIC, residual Ljung-Box tests, and parameter significance. The volatility step now uses the canonical `arch` package rather than a custom optimizer. For each portfolio, the selected ARIMA residuals were passed to Gaussian, Student-t, skewed Student-t, and GED GARCH(1,1) specifications. Preferred-model selection does not rely on one metric alone; it combines AIC/BIC, standardized-residual autocorrelation checks, leftover ARCH diagnostics, innovation KS tests under the assumed distribution, and core-parameter significance.
-
-**Table 4. Selected benchmark mean and volatility models.**
-
-{_build_model_table(models, garch)}
-
-The mean dynamics are modest. Five of the six portfolios select ARIMA(2,0,2), while Small LoBM selects ARIMA(0,0,2). Residual diagnostics are acceptable for the larger, lower-volatility portfolios but remain weaker for ME1 BM2 and Small HiBM, which is why the report does not overstate the quality of purely univariate mean models. The variance dynamics are more striking. GARCH persistence remains high across the six series, and the selected arch-based volatility filters largely remove the leftover second-moment dependence. The selected volatility-model counts are {volatility_fit_count_text}, which matches the heavy-tail evidence already visible in the marginal distribution diagnostics. That pattern aligns with the finance literature: monthly returns are hard to forecast in mean, but their volatility remains persistent and often better captured with non-Gaussian innovations.
-
-### 3.3 Predictive Models with Exogenous Variables
-
-The predictive extension combines lagged authoritative Fama-French factors with internally constructed signals such as lagged size and value spreads, 12-month rolling market volatility, 12-month momentum, and drawdown-style indicators. Three classes are compared portfolio by portfolio: the selected benchmark ARIMA model, an ARIMAX specification with lagged factors, and a predictive regression with lagged returns plus the broader predictor set. Performance is evaluated both in sample and with a 120-month expanding one-step-ahead forecast exercise using RMSE, MAE, and directional accuracy.
-
-**Table 5. Best predictive model versus the univariate benchmark.**
-
-{_build_predictive_table(predictive)}
-
-The out-of-sample gains are real but limited. Only {best_predictive_count} of the 6 portfolios improve on the benchmark RMSE, and the strongest gain belongs to {PORTFOLIO_LABELS[best_predictive_gain["portfolio"]]}, where the preferred {SHORT_MODEL_LABELS.get(best_predictive_gain["model_label"], best_predictive_gain["model_label"]).lower()} improves RMSE by {_format_pct(best_predictive_gain["rmse_gain"] * 100.0)} relative to the benchmark. This is an economically sensible result rather than a disappointment. Monthly portfolio returns should not be expected to yield large and stable conditional-mean predictability, and the evidence here agrees with that view: exogenous signals help selectively, but they do not overturn the basic conclusion that volatility structure is more reliable than mean structure.
+{rendered_section_03}
 
 ## 4. Trading Strategies
 
@@ -535,9 +487,7 @@ The portfolio-allocation comparison is stronger than the stat-arb exercise. The 
 
 Figure 4 shows that the return-covariance structure does allow higher expected-return portfolios along the frontier, but Figure 5 makes the implementation lesson clearer: the allocation strategies dominate the cointegration strategy over the realized sample. Table 7 shows that the plug-in mean-variance strategy achieves the highest net Sharpe at {_format_float(plugin["sharpe_net"])}, outperforming equal weight on both return and risk-adjusted performance. The improved shrinkage strategy does not quite match the plug-in Sharpe, but it remains competitive while cutting average turnover from {_format_float(plugin["average_turnover"], 4)} to {_format_float(improved["average_turnover"], 4)}. That tradeoff is economically attractive because the lower-turnover strategy is much closer to what a practical allocator would want to implement repeatedly.
 
-## 5. Conclusions
-
-{conclusions.replace("# Conclusions", "").strip()}
+{rendered_section_05}
 
 ## References
 
@@ -671,12 +621,13 @@ The HTML file remains the fallback print-ready source.
 def build_final_report() -> dict[str, str]:
     inputs = _load_report_inputs()
     conclusions = _compose_conclusions(inputs["strategy_metrics"], inputs["predictive"])
-    report_text = _compose_final_report(inputs, conclusions)
     appendices_text = _compose_appendices()
+    SECTION_05_PATH.write_text(conclusions, encoding="utf-8")
+    mapping_path = build_guidance_lecture_mapping()
+    report_text = _compose_final_report(inputs)
 
     FINAL_REPORT_MD_PATH.write_text(report_text, encoding="utf-8")
     FINAL_APPENDICES_PATH.write_text(appendices_text, encoding="utf-8")
-    (REPORT_SECTIONS_DIR / "05_conclusions.md").write_text(conclusions, encoding="utf-8")
 
     notebook = nbformat.v4.new_notebook()
     notebook.cells = [nbformat.v4.new_markdown_cell(report_text)]
@@ -696,6 +647,7 @@ HTML: {FINAL_REPORT_HTML_PATH}
 PDF path reserved: {FINAL_REPORT_PDF_PATH}
 Appendices: {FINAL_APPENDICES_PATH}
 Project status file: {PROJECT_STATUS_PATH}
+Guidance/lecture mapping: {mapping_path}
 Export status: {export_status["status"]}
 PDF result: {pdf_result[1]}
 """
@@ -707,6 +659,7 @@ PDF result: {pdf_result[1]}
         "final_report_html": str(FINAL_REPORT_HTML_PATH),
         "final_report_pdf": str(FINAL_REPORT_PDF_PATH),
         "final_appendices": str(FINAL_APPENDICES_PATH),
+        "guidance_lecture_mapping": mapping_path,
         "export_notes": str(EXPORT_NOTES_PATH),
         "pdf_supported": str(export_status["pdf_supported"]),
     }

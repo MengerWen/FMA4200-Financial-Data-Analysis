@@ -3,7 +3,7 @@
 Dep. Variable:             target_pct   No. Observations:                 1183
 Model:                 ARIMA(2, 0, 2)   Log Likelihood               -3698.231
 Date:                Sun, 12 Apr 2026   AIC                           7416.462
-Time:                        12:22:25   BIC                           7467.194
+Time:                        20:42:40   BIC                           7467.194
 Sample:                    07-31-1927   HQIC                          7435.588
                          - 01-31-2026                                         
 Covariance Type:                  opg                                         

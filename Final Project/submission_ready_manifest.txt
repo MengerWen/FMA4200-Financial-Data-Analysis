@@ -314,6 +314,7 @@ submission_ready/report/final_report.html
 submission_ready/report/final_report.ipynb
 submission_ready/report/final_report.md
 submission_ready/report/final_report.pdf
+submission_ready/report/guidance_lecture_mapping.md
 submission_ready/report/references.md
 submission_ready/report/references_verification.md
 submission_ready/report/rubric_checklist.md

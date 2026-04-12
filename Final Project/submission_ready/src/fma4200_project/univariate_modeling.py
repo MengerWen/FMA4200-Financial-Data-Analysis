@@ -47,6 +47,14 @@ VOLATILITY_MODELS = (
     ("GED GARCH(1,1)", "ged"),
 )
 
+SHORT_PREDICTIVE_LABELS = {
+    "Benchmark ARIMA": "Benchmark ARIMA",
+    "ARIMAX with lagged Fama-French factors": "ARIMAX",
+    "ARIMAX with internal fallback predictors": "ARIMAX",
+    "Predictive regression with lagged factors and internal signals": "Predictive regression",
+    "Predictive regression with internal fallback predictors": "Predictive regression",
+}
+
 
 @dataclass
 class DistributionFitResult:
@@ -118,6 +126,39 @@ def portfolio_label(portfolio: str) -> str:
         "big_hibm_vwret_pct": "Big HiBM",
     }
     return labels.get(portfolio, portfolio.replace("_vwret_pct", "").replace("_", " ").title())
+
+
+def predictor_source_label(source_flag: str) -> str:
+    labels = {
+        "authoritative_fama_french_cached": "cached authoritative Fama-French monthly factors",
+        "authoritative_fama_french_downloaded": "downloaded authoritative Fama-French monthly factors",
+        "internal_fallback_only": "internally constructed fallback predictors",
+    }
+    return labels.get(source_flag, source_flag.replace("_", " "))
+
+
+def format_pvalue(value: float) -> str:
+    if pd.isna(value):
+        return "NA"
+    if value < 0.001:
+        return "<0.001"
+    return f"{value:.3f}"
+
+
+def format_float(value: float, digits: int = 3) -> str:
+    return f"{value:.{digits}f}"
+
+
+def markdown_table(dataframe: pd.DataFrame) -> str:
+    headers = list(dataframe.columns)
+    separator = ["---"] * len(headers)
+    lines = [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join(separator) + " |",
+    ]
+    for row in dataframe.astype(str).values.tolist():
+        lines.append("| " + " | ".join(row) + " |")
+    return "\n".join(lines)
 
 
 def portfolio_paths(portfolio: str) -> dict[str, Path]:
@@ -472,6 +513,114 @@ def descriptive_row(
         **arch,
     }
     return row, distribution_table, fitted_distributions, recommended_distribution
+
+
+def build_distribution_summary_table(test_summary: pd.DataFrame) -> str:
+    table = test_summary.copy()
+    table["Portfolio"] = table["portfolio"].map(portfolio_label)
+    table["Skewness"] = table["skewness"].map(lambda value: format_float(float(value), 2))
+    table["Excess kurtosis"] = table["excess_kurtosis"].map(lambda value: format_float(float(value), 2))
+    table["Jarque-Bera p"] = table["jarque_bera_pvalue"].map(format_pvalue)
+    table["Shapiro-Wilk p"] = table["shapiro_wilk_pvalue"].map(format_pvalue)
+    table["Recommended fit"] = table["best_marginal_fit"]
+    table["Best-fit KS p"] = table["best_marginal_fit_ks_pvalue"].map(format_pvalue)
+    table["AIC gain vs Gaussian"] = table["best_marginal_fit_aic_gain_vs_normal"].map(
+        lambda value: format_float(float(value), 1)
+    )
+    table["ADF p"] = table["adf_pvalue"].map(format_pvalue)
+    table["ARCH-LM p"] = table["arch_lm_pvalue"].map(format_pvalue)
+    return markdown_table(
+        table[
+            [
+                "Portfolio",
+                "Skewness",
+                "Excess kurtosis",
+                "Jarque-Bera p",
+                "Shapiro-Wilk p",
+                "Recommended fit",
+                "Best-fit KS p",
+                "AIC gain vs Gaussian",
+                "ADF p",
+                "ARCH-LM p",
+            ]
+        ]
+    )
+
+
+def build_mean_volatility_table(model_summary: pd.DataFrame, garch_summary: pd.DataFrame) -> str:
+    merged = model_summary.merge(
+        garch_summary[
+            [
+                "portfolio",
+                "model_label",
+                "distribution",
+                "persistence",
+                "std_resid_sq_lb_pvalue_lag_12",
+                "std_resid_arch_lm_pvalue",
+                "innovation_ks_pvalue",
+            ]
+        ],
+        on="portfolio",
+        how="inner",
+    )
+    merged["Portfolio"] = merged["portfolio"].map(portfolio_label)
+    merged["Selected ARIMA"] = merged["selected_arima_order"]
+    merged["Selected volatility"] = merged["model_label"]
+    merged["Innovation dist."] = merged["distribution"]
+    merged["Residual Ljung-Box p (12)"] = merged["residual_lb_pvalue_lag_12"].map(format_pvalue)
+    merged["GARCH persistence"] = merged["persistence"].map(lambda value: format_float(float(value), 3))
+    merged["Std. sq. resid. LB p (12)"] = merged["std_resid_sq_lb_pvalue_lag_12"].map(format_pvalue)
+    merged["Std. resid. ARCH-LM p"] = merged["std_resid_arch_lm_pvalue"].map(format_pvalue)
+    merged["Innovation KS p"] = merged["innovation_ks_pvalue"].map(format_pvalue)
+    return markdown_table(
+        merged[
+            [
+                "Portfolio",
+                "Selected ARIMA",
+                "Selected volatility",
+                "Innovation dist.",
+                "Residual Ljung-Box p (12)",
+                "GARCH persistence",
+                "Std. sq. resid. LB p (12)",
+                "Std. resid. ARCH-LM p",
+                "Innovation KS p",
+            ]
+        ]
+    )
+
+
+def build_predictive_summary_table(predictive_summary: pd.DataFrame) -> str:
+    benchmark = predictive_summary.loc[predictive_summary["is_benchmark"]].copy()
+    preferred = predictive_summary.loc[predictive_summary["is_preferred_predictive"]].copy()
+    merged = preferred.merge(
+        benchmark[["portfolio", "rmse"]].rename(columns={"rmse": "benchmark_rmse"}),
+        on="portfolio",
+        how="left",
+    )
+    merged["Portfolio"] = merged["portfolio"].map(portfolio_label)
+    merged["Preferred model"] = merged["model_label"].map(
+        lambda value: SHORT_PREDICTIVE_LABELS.get(str(value), str(value))
+    )
+    merged["Benchmark RMSE"] = merged["benchmark_rmse"].map(lambda value: format_float(float(value), 3))
+    merged["Predictive RMSE"] = merged["rmse"].map(lambda value: format_float(float(value), 3))
+    merged["RMSE gain vs benchmark (%)"] = (
+        ((merged["benchmark_rmse"] - merged["rmse"]) / merged["benchmark_rmse"]) * 100.0
+    ).map(lambda value: format_float(float(value), 2))
+    merged["Directional accuracy"] = merged["directional_accuracy"].map(
+        lambda value: format_float(float(value), 3)
+    )
+    return markdown_table(
+        merged[
+            [
+                "Portfolio",
+                "Preferred model",
+                "Benchmark RMSE",
+                "Predictive RMSE",
+                "RMSE gain vs benchmark (%)",
+                "Directional accuracy",
+            ]
+        ]
+    )
 
 
 def choose_d_candidates(test_row: dict[str, float | str]) -> list[int]:
@@ -1211,6 +1360,7 @@ def write_section_03(
     test_summary: pd.DataFrame,
     model_summary: pd.DataFrame,
     garch_summary: pd.DataFrame,
+    predictive_summary: pd.DataFrame | None = None,
 ) -> None:
     best_mean_portfolio = test_summary.sort_values("mean_pct", ascending=False).iloc[0]
     highest_persistence = garch_summary.sort_values("persistence", ascending=False).iloc[0]
@@ -1222,112 +1372,209 @@ def write_section_03(
     volatility_counts = garch_summary["distribution"].value_counts().to_dict()
     marginal_count_text = ", ".join(f"{name}: {count}" for name, count in sorted(marginal_counts.items()))
     volatility_count_text = ", ".join(f"{name}: {count}" for name, count in sorted(volatility_counts.items()))
+
     section_lines = [
         "# Modeling the Individual Portfolio Returns",
         "",
-        "## Workflow",
+        "## Distributional Properties and Stationarity",
         "",
         (
-            "This section models each of the six value-weighted portfolio return series individually using the "
-            "cleaned monthly dataset. For each portfolio, the pipeline saves a time-series plot, a histogram-density "
-            "plot with fitted Gaussian, Student-t, and NIG overlays, a normal-versus-recommended QQ comparison, a "
-            "recommended-distribution CDF diagnostic, ACF/PACF, residual diagnostics, volatility-clustering diagnostics, "
-            "ARIMA candidate comparison tables, a selected ARIMA summary, and an `arch`-based volatility-model "
-            "comparison estimated on ARIMA residuals."
+            "Each portfolio was analyzed with the lecture-style univariate toolkit from Lecture Slides 1 and 2: "
+            "time-series plots, histogram-density plots with fitted Gaussian, Student-t, and NIG densities, "
+            "normal-versus-recommended QQ diagnostics, recommended-fit CDF diagnostics, full descriptive statistics "
+            "(mean, median, standard deviation, quantiles, skewness, and kurtosis), Jarque-Bera and Shapiro-Wilk "
+            "tests, MLE-based distribution fitting, KS goodness-of-fit tests, ADF and KPSS stationarity checks, "
+            "ACF/PACF, Ljung-Box tests, and ARCH-LM diagnostics."
         ),
         "",
-        "## Distributional and Diagnostic Evidence",
+        "**Table 3. Distribution, normality, stationarity, and ARCH diagnostics.**",
+        "",
+        build_distribution_summary_table(test_summary),
         "",
         (
-            f"The descriptive diagnostics confirm the stylized facts emphasized in the lecture notes: the monthly "
-            f"portfolio returns are stationary in levels, but they are not well described by a Gaussian law. "
-            f"Jarque-Bera and Shapiro-Wilk tests reject normality for essentially the entire panel, and heavy-tailed "
-            f"MLE fits dominate the Gaussian benchmark throughout the sample. The recommended marginal-fit counts are "
-            f"**{marginal_count_text}**. The largest AIC improvement over the Gaussian fit appears in "
-            f"**{portfolio_label(strongest_non_normal['portfolio'])}**, where the recommended distribution is "
-            f"**{strongest_non_normal['best_marginal_fit']}**."
+            f"Table 3 shows that the six monthly return series are stationary in levels but decisively non-Gaussian. "
+            f"Jarque-Bera and Shapiro-Wilk p-values are effectively zero across the panel, while the preferred "
+            f"marginal-fit counts are **{marginal_count_text}**. The most extreme departure from the Gaussian benchmark "
+            f"appears in **{portfolio_label(strongest_non_normal['portfolio'])}**, where the recommended "
+            f"**{strongest_non_normal['best_marginal_fit']}** fit improves AIC by "
+            f"**{float(strongest_non_normal['best_marginal_fit_aic_gain_vs_normal']):.1f}** points relative to the "
+            "normal fit."
         ),
         "",
         (
-            "Stationarity tests support modeling returns in levels rather than prices: the series are monthly returns, "
-            "ADF generally rejects a unit root, and KPSS does not overturn the practical use of level ARIMA models. "
-            f"At the same time, ARCH-LM tests reject homoskedasticity throughout the panel, with the strongest raw "
-            f"volatility clustering in **{portfolio_label(strongest_arch['portfolio'])}**."
+            "The stationarity evidence supports modeling monthly returns directly rather than differencing them again: "
+            "ADF rejects a unit root throughout the panel, while KPSS does not overturn the practical use of level "
+            "ARIMA models. At the same time, the raw series exhibit clear volatility clustering. ARCH-LM tests reject "
+            f"homoskedasticity for all six portfolios, with the strongest raw ARCH signal in "
+            f"**{portfolio_label(strongest_arch['portfolio'])}**."
         ),
         "",
-        "The saved diagnostic artifacts for each portfolio are under:",
+        "Detailed artifacts for this subsection are saved under:",
         "",
         "- `output/figures/individual_returns/<portfolio>/`",
         "- `output/tables/individual_returns/<portfolio>/`",
         "- `output/models/individual_returns/<portfolio>/`",
         "",
-        "## Mean-Model Selection",
-        "",
-        "AR, MA, and ARMA/ARIMA candidates were estimated with `statsmodels`. The selection rule was:",
-        "",
-        "1. Use ADF and KPSS evidence to decide whether differenced candidates are even needed.",
-        "2. Use the ACF/PACF patterns as a rough guide, then fit a small interpretable ARIMA grid with orders up to two autoregressive and two moving-average terms.",
-        "3. Compare candidates on AIC and BIC.",
-        "4. Prefer models whose residual Ljung-Box p-value at lag 12 is at least 0.05 and whose dynamic parameters are mostly statistically significant when such terms are present.",
-        "5. Break ties in favor of the simpler specification.",
-        "",
-        "This rule is intentionally conservative because monthly equity returns often contain much weaker mean predictability than volatility predictability. In practice, the selected ARIMA models are low-order and in some cases close to white-noise benchmarks, which is consistent with the financial-return literature reviewed in the introduction.",
-        "",
-        f"Residual diagnostics also show that mean dynamics are not captured equally well across all portfolios. The clearest remaining residual autocorrelation at lag 12 appears in **{weak_residual_text}**, so those selected ARIMA specifications should be read as reasonable low-order benchmarks rather than fully satisfactory final mean models.",
-        "",
-        "The combined comparison table is saved at `output/tables/individual_returns/portfolio_model_comparison_summary.csv`.",
-        "",
-        "## Volatility Modeling",
+        "## ARIMA Benchmarks and `arch`-Based Volatility Models",
         "",
         (
-            "Conditional volatility was modeled with the canonical `arch` package rather than with a custom optimizer. "
-            "For each portfolio, the selected ARIMA residuals were passed to four GARCH(1,1) specifications: Gaussian, "
-            "Student-t, skewed Student-t, and GED. Preferred-model selection does not rely on one metric alone. It "
-            "combines AIC/BIC, Ljung-Box tests on standardized residuals and squared standardized residuals, residual "
-            "ARCH-LM tests, innovation KS tests under the assumed distribution, and the significance share of the core "
-            "volatility parameters."
+            "AR, MA, and ARMA/ARIMA candidates were estimated with `statsmodels` using the lecture-slide logic of "
+            "ACF/PACF identification, low-order interpretable grids, and explicit residual checks. Candidate mean "
+            "models were compared with AIC, BIC, residual Ljung-Box tests, and the significance share of dynamic "
+            "parameters. The volatility stage then used the canonical `arch` package on the selected ARIMA residuals, "
+            "comparing Gaussian, Student-t, Skewed Student-t, and GED GARCH(1,1) specifications."
         ),
         "",
         (
-            f"The selected volatility-model counts are **{volatility_count_text}**. The most persistent "
-            f"selected volatility process in the current run is **{portfolio_label(highest_persistence['portfolio'])}**, "
-            f"with alpha + beta = **{highest_persistence['persistence']:.3f}**."
+            "Preferred volatility selection is intentionally multi-criterion rather than single-metric. It combines "
+            "AIC/BIC, Ljung-Box tests on standardized residuals and squared standardized residuals, standardized-"
+            "residual ARCH-LM tests, innovation KS checks under the assumed distribution, and the significance share "
+            "of the core volatility parameters."
         ),
         "",
-        "The combined volatility summary is saved at `output/tables/individual_returns/portfolio_garch_summary.csv`.",
+        "**Table 4. Selected mean and volatility models.**",
         "",
-        "## Cross-Portfolio Interpretation",
+        build_mean_volatility_table(model_summary, garch_summary),
+        "",
+        (
+            f"Mean dynamics remain modest. The selected ARIMA models are low-order benchmarks, and the clearest "
+            f"remaining residual autocorrelation at lag 12 appears in **{weak_residual_text}**. By contrast, the "
+            f"conditional-variance evidence is stronger and more systematic. The selected volatility-model counts are "
+            f"**{volatility_count_text}**, and the most persistent selected process belongs to "
+            f"**{portfolio_label(highest_persistence['portfolio'])}** with alpha + beta = "
+            f"**{float(highest_persistence['persistence']):.3f}**."
+        ),
         "",
         (
             f"The portfolio with the highest average monthly return remains **{portfolio_label(best_mean_portfolio['portfolio'])}**, "
-            f"at **{best_mean_portfolio['mean_pct']:.3f}%** per month. Across the six portfolios, the mean-model "
-            "evidence is modest, while the volatility-model evidence is stronger and more systematic. That pattern "
-            "supports an interpretation in which the conditional mean of monthly portfolio returns is only weakly "
-            "predictable from its own history, but conditional risk is persistent and benefits from explicitly "
-            "heavy-tailed volatility specifications."
+            f"at **{float(best_mean_portfolio['mean_pct']):.3f}%** per month. Across the panel, the evidence supports "
+            "a standard finance interpretation: conditional mean dynamics are weak, but conditional risk is persistent "
+            "and is better captured by heavy-tailed innovation assumptions than by the Gaussian benchmark alone."
         ),
         "",
-        (
-            "Overall, the Section 3 evidence points to three conclusions. First, the return series are heavy tailed "
-            "enough that Gaussian diagnostics alone are too narrow, so the report now uses multiple normality checks, "
-            "MLE-based Normal/Student-t/NIG comparisons, and KS goodness-of-fit tests. Second, low-order ARIMA models are adequate as mean benchmarks, but "
-            "they do not reveal strong standalone predictability. Third, volatility clustering is real enough to justify "
-            "GARCH-type modeling with `arch`, and non-Gaussian innovation assumptions often fit better than Gaussian "
-            "innovations even at the monthly frequency."
-        ),
+        "## Predictive Models with Exogenous Variables",
         "",
-        "Portfolio-by-portfolio interpretations and the denser output inventory are moved to the appendix file `report/sections/appendix_individual_returns_modeling.md`.",
     ]
+
+    if predictive_summary is not None and not predictive_summary.empty:
+        preferred_predictive = predictive_summary.loc[predictive_summary["is_preferred_predictive"]].copy()
+        benchmark_rows = predictive_summary.loc[
+            predictive_summary["is_benchmark"],
+            ["portfolio", "rmse", "mae"],
+        ].rename(columns={"rmse": "benchmark_rmse", "mae": "benchmark_mae"})
+        preferred_predictive = preferred_predictive.merge(benchmark_rows, on="portfolio", how="left")
+        preferred_predictive["rmse_improvement_pct"] = (
+            100.0
+            * (preferred_predictive["benchmark_rmse"] - preferred_predictive["rmse"])
+            / preferred_predictive["benchmark_rmse"]
+        )
+        beating_benchmark = preferred_predictive.loc[preferred_predictive["rmse_improvement_pct"] > 0.0].copy()
+        source_value = predictor_source_label(str(preferred_predictive["predictor_source"].mode().iloc[0]))
+        common_family = str(preferred_predictive["model_label"].mode().iloc[0])
+        best_gain_row = preferred_predictive.sort_values("rmse_improvement_pct", ascending=False).iloc[0]
+
+        section_lines.extend(
+            [
+                (
+                    f"The predictive extension adds lagged exogenous information to the univariate benchmarks. In the "
+                    f"current run, the project uses **{source_value}**, together with internally constructed signals "
+                    "such as lagged size and value spreads, a 12-month rolling market-volatility proxy, a 12-month "
+                    "momentum proxy, and a drawdown proxy. Three classes are compared portfolio by portfolio: the "
+                    "selected ARIMA benchmark, an ARIMAX specification with lagged exogenous predictors, and a "
+                    "predictive regression with lagged returns plus the broader predictor set."
+                ),
+                "",
+                (
+                    "Predictive evaluation follows the course requirement to compare both in-sample fit and "
+                    "out-of-sample performance. Full-sample model quality is summarized with AIC, BIC, residual "
+                    "Ljung-Box diagnostics, and parameter significance. Out-of-sample performance is evaluated with a "
+                    "120-month expanding one-step-ahead forecast exercise using RMSE, MAE, and directional accuracy."
+                ),
+                "",
+                "**Table 5. Preferred predictive model versus the univariate benchmark.**",
+                "",
+                build_predictive_summary_table(predictive_summary),
+                "",
+                (
+                    f"The most common preferred predictive family is **{common_family}**. The out-of-sample gains are "
+                    f"modest rather than dramatic, which is consistent with the literature on monthly return "
+                    f"predictability. Even so, **{len(beating_benchmark)} of 6** portfolios improve on the benchmark "
+                    f"RMSE once the best predictive extension is used. The strongest improvement occurs for "
+                    f"**{portfolio_label(best_gain_row['portfolio'])}**, where the preferred "
+                    f"**{SHORT_PREDICTIVE_LABELS.get(str(best_gain_row['model_label']), str(best_gain_row['model_label']))}** "
+                    f"changes RMSE by **{float(best_gain_row['rmse_improvement_pct']):.2f}%** relative to the "
+                    "benchmark."
+                ),
+                "",
+                (
+                    "These results still point to the same economic conclusion: exogenous signals can help selectively, "
+                    "but they do not overturn the broader Section 3 lesson that conditional variance and tail behavior "
+                    "are more reliable features of the monthly portfolio returns than large and stable conditional-mean "
+                    "predictability."
+                ),
+                "",
+                "Predictive-modeling artifacts are saved under:",
+                "",
+                "- `data/processed/predictor_dataset_monthly.csv`",
+                "- `data/processed/predictor_source_summary.csv`",
+                "- `output/figures/predictive_individual_returns/<portfolio>/`",
+                "- `output/tables/predictive_individual_returns/<portfolio>/`",
+                "- `output/models/predictive_individual_returns/<portfolio>/`",
+                "- `output/tables/predictive_individual_returns/predictive_model_summary.csv`",
+                "- `output/tables/predictive_individual_returns/predictive_forecast_metrics.csv`",
+                "- `output/tables/predictive_individual_returns/predictive_forecasts.csv`",
+                "",
+            ]
+        )
+    else:
+        section_lines.extend(
+            [
+                (
+                    "The predictive-modeling subsection is filled by the exogenous-predictor pipeline. If this file is "
+                    "being regenerated from the univariate stage alone, rerun `scripts/run_predictive_modeling.py` to "
+                    "append the ARIMAX and predictive-regression comparison with out-of-sample forecast metrics."
+                ),
+                "",
+            ]
+        )
+
+    section_lines.extend(
+        [
+            (
+                "Overall, Section 3 delivers three main conclusions. First, the monthly portfolio returns are heavy "
+                "tailed enough that Gaussian-only diagnostics are too narrow, so the analysis now uses multiple "
+                "normality checks, MLE-based Normal/Student-t/NIG comparisons, and KS goodness-of-fit tests. Second, "
+                "low-order ARIMA models are adequate mean benchmarks, but they reveal only modest conditional-mean "
+                "structure. Third, volatility clustering is strong enough to justify `arch`-based GARCH modeling, and "
+                "non-Gaussian innovation assumptions often dominate the Gaussian benchmark even at the monthly "
+                "frequency."
+            ),
+            "",
+            "Portfolio-by-portfolio notes and the denser output inventory are moved to `report/sections/appendix_individual_returns_modeling.md`.",
+        ]
+    )
     SECTION_03_PATH.write_text("\n".join(section_lines) + "\n", encoding="utf-8")
 
 
-def write_appendix(test_summary: pd.DataFrame, model_summary: pd.DataFrame, garch_summary: pd.DataFrame) -> None:
+def write_appendix(
+    test_summary: pd.DataFrame,
+    model_summary: pd.DataFrame,
+    garch_summary: pd.DataFrame,
+    predictive_summary: pd.DataFrame | None = None,
+) -> None:
     appendix_lines = [
         "# Appendix: Individual Portfolio Modeling Details",
         "",
-        "This appendix records concise portfolio-by-portfolio interpretations generated from the saved diagnostics and model outputs.",
+        "This appendix records concise portfolio-by-portfolio notes from the univariate benchmark stage and, when available, the exogenous predictive-modeling stage.",
         "",
     ]
+
+    benchmark_lookup = None
+    preferred_lookup = None
+    if predictive_summary is not None and not predictive_summary.empty:
+        benchmark_lookup = predictive_summary.loc[predictive_summary["is_benchmark"]].set_index("portfolio")
+        preferred_lookup = predictive_summary.loc[predictive_summary["is_preferred_predictive"]].set_index("portfolio")
+
     for portfolio in PERCENT_COLUMNS:
         test_row = test_summary.loc[test_summary["portfolio"] == portfolio].iloc[0]
         model_row = model_summary.loc[model_summary["portfolio"] == portfolio].iloc[0]
@@ -1336,27 +1583,64 @@ def write_appendix(test_summary: pd.DataFrame, model_summary: pd.DataFrame, garc
             [
                 f"## {portfolio_label(portfolio)}",
                 "",
-                f"- Mean and risk: {test_row['mean_pct']:.3f}% monthly mean, {test_row['std_pct']:.3f}% monthly volatility.",
                 (
-                    f"- Shape: skewness = {test_row['skewness']:.3f}, kurtosis = {test_row['kurtosis']:.3f}, "
-                    f"Jarque-Bera p-value = {test_row['jarque_bera_pvalue']:.4f}, Shapiro-Wilk p-value = "
-                    f"{test_row['shapiro_wilk_pvalue']:.4f}, and best marginal fit = {test_row['best_marginal_fit']} "
-                    f"(AIC gain vs Gaussian = {test_row['best_marginal_fit_aic_gain_vs_normal']:.2f})."
-                ),
-                f"- Stationarity: ADF p-value = {test_row['adf_pvalue']:.4f}, KPSS p-value = {test_row['kpss_pvalue']:.4f}.",
-                (
-                    f"- Selected ARIMA model: {model_row['selected_arima_order']} with AIC = {model_row['selected_arima_aic']:.2f}, "
-                    f"BIC = {model_row['selected_arima_bic']:.2f}, and residual Ljung-Box p-value at lag 12 = "
-                    f"{model_row['residual_lb_pvalue_lag_12']:.4f}."
+                    f"- Distribution: mean = {float(test_row['mean_pct']):.3f}% per month, median = "
+                    f"{float(test_row['median_pct']):.3f}%, volatility = {float(test_row['std_pct']):.3f}% per month, "
+                    f"skewness = {float(test_row['skewness']):.3f}, kurtosis = {float(test_row['kurtosis']):.3f}, "
+                    f"Jarque-Bera p-value = {float(test_row['jarque_bera_pvalue']):.4f}, Shapiro-Wilk p-value = "
+                    f"{float(test_row['shapiro_wilk_pvalue']):.4f}, and recommended marginal fit = "
+                    f"{test_row['best_marginal_fit']} with KS p-value = {float(test_row['best_marginal_fit_ks_pvalue']):.4f}."
                 ),
                 (
-                    f"- Selected volatility model: {garch_row['model_label']} with alpha = {garch_row['alpha']:.4f}, "
-                    f"beta = {garch_row['beta']:.4f}, persistence = {garch_row['persistence']:.4f}, "
-                    f"innovation KS p-value = {garch_row['innovation_ks_pvalue']:.4f}, "
-                    f"standardized-squared-residual Ljung-Box p-value at lag 12 = {garch_row['std_resid_sq_lb_pvalue_lag_12']:.4f}, "
-                    f"and standardized-residual ARCH-LM p-value = {garch_row['std_resid_arch_lm_pvalue']:.4f}."
+                    f"- Stationarity and dependence: ADF p-value = {float(test_row['adf_pvalue']):.4f}, KPSS p-value = "
+                    f"{float(test_row['kpss_pvalue']):.4f}, raw Ljung-Box p-value at lag 12 = "
+                    f"{float(test_row['lb_pvalue_lag_12']):.4f}, and raw ARCH-LM p-value = "
+                    f"{float(test_row['arch_lm_pvalue']):.4f}."
                 ),
+                (
+                    f"- Selected ARIMA model: {model_row['selected_arima_order']} with AIC = "
+                    f"{float(model_row['selected_arima_aic']):.2f}, BIC = {float(model_row['selected_arima_bic']):.2f}, "
+                    f"and residual Ljung-Box p-value at lag 12 = {float(model_row['residual_lb_pvalue_lag_12']):.4f}."
+                ),
+                (
+                    f"- Selected volatility model: {garch_row['model_label']} with innovation distribution "
+                    f"{garch_row['distribution']}, alpha = {float(garch_row['alpha']):.4f}, beta = "
+                    f"{float(garch_row['beta']):.4f}, persistence = {float(garch_row['persistence']):.4f}, "
+                    f"innovation KS p-value = {float(garch_row['innovation_ks_pvalue']):.4f}, standardized-squared-"
+                    f"residual Ljung-Box p-value at lag 12 = {float(garch_row['std_resid_sq_lb_pvalue_lag_12']):.4f}, "
+                    f"and standardized-residual ARCH-LM p-value = {float(garch_row['std_resid_arch_lm_pvalue']):.4f}."
+                ),
+            ]
+        )
+
+        if benchmark_lookup is not None and preferred_lookup is not None:
+            benchmark_row = benchmark_lookup.loc[portfolio]
+            preferred_row = preferred_lookup.loc[portfolio]
+            rmse_improvement = 100.0 * (benchmark_row["rmse"] - preferred_row["rmse"]) / benchmark_row["rmse"]
+            appendix_lines.extend(
+                [
+                    (
+                        f"- Predictive benchmark: RMSE = {float(benchmark_row['rmse']):.4f}, MAE = "
+                        f"{float(benchmark_row['mae']):.4f}, directional accuracy = "
+                        f"{float(benchmark_row['directional_accuracy']):.3f}."
+                    ),
+                    (
+                        f"- Preferred predictive model: {preferred_row['model_label']} with RMSE = "
+                        f"{float(preferred_row['rmse']):.4f}, MAE = {float(preferred_row['mae']):.4f}, "
+                        f"directional accuracy = {float(preferred_row['directional_accuracy']):.3f}, and RMSE change "
+                        f"vs benchmark = {rmse_improvement:.2f}%."
+                    ),
+                    f"- Most informative predictive terms: {preferred_row['top_significant_terms']}",
+                ]
+            )
+
+        appendix_lines.extend(
+            [
                 f"- Saved outputs: `output/figures/individual_returns/{portfolio_slug(portfolio)}/`, `output/tables/individual_returns/{portfolio_slug(portfolio)}/`, and `output/models/individual_returns/{portfolio_slug(portfolio)}/`.",
+                (
+                    f"- Distribution-fit comparison: `output/tables/individual_returns/{portfolio_slug(portfolio)}/distribution_fit_comparison.csv`; "
+                    f"volatility-model comparison: `output/tables/individual_returns/{portfolio_slug(portfolio)}/garch_candidate_models.csv`."
+                ),
                 "",
             ]
         )

@@ -6,6 +6,12 @@
 
 ## 1. What Was Added or Changed
 
+- Hardened the report-sync chain for Section 3 and conclusions:
+  - refactored `src/fma4200_project/univariate_modeling.py` so the canonical Section 3 and its appendix are written by shared functions that support both the univariate and predictive stages
+  - removed the duplicate Section 3 writers from `src/fma4200_project/predictive_modeling.py` and replaced them with calls to the shared Section 3 writers
+  - updated `src/fma4200_project/final_report_builder.py` so `report/final_report.md` now consumes the canonical Section 3 source file and conclusion source file instead of maintaining a parallel hardcoded Section 3 narrative
+  - added `report/guidance_lecture_mapping.md` to map `Guidance.md`, the lecture slides, the code files, the saved outputs, and the final-report sections
+  - updated `README.md` and `environment_used.md` to document the new source-of-truth chain and the canonical `arch`/distribution-fitting setup for Section 3
 - Upgraded Section 3 to use canonical `arch`-based volatility modeling and richer distribution diagnostics:
   - replaced the old hand-coded Gaussian GARCH(1,1) workflow in `src/fma4200_project/univariate_modeling.py`
   - expanded the marginal-fit stage to MLE-based Normal, Student-t, and NIG comparisons with KS goodness-of-fit checks, Shapiro-Wilk tests, and recommended-fit diagnostic plots
@@ -151,6 +157,10 @@
   - reran `scripts/audit_and_prepare_submission.py`
   - synchronized `submission_ready/` and `submission_ready.zip` with the current `arch`-based Section 3 code, report text, and outputs
   - confirmed the archived copy no longer contains stale `scipy.optimize` or hand-rolled GARCH references
+- Refreshed the audited submission bundle after the report-sync refactor:
+  - regenerated `report/final_report.md`, `report/final_report.html`, `report/final_report.pdf`, and `report/guidance_lecture_mapping.md`
+  - synchronized `submission_ready/` and `submission_ready.zip` with the canonical Section 3 source files and the new guidance-to-lecture mapping note
+  - confirmed the archived `submission_ready/report/final_report.md` now matches the upgraded Section 3 structure with MLE distribution tables and `arch`-based volatility-model comparisons
 
 ## 2. What Ran Successfully
 
@@ -173,6 +183,11 @@
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\build_final_report.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\audit_and_prepare_submission.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_pipeline.py'`
+- Re-ran after the Section 3 synchronization refactor:
+  - `& 'd:\MG\anaconda3\python.exe' -m py_compile 'src\fma4200_project\univariate_modeling.py' 'src\fma4200_project\predictive_modeling.py' 'src\fma4200_project\final_report_builder.py' 'src\fma4200_project\submission_audit.py' 'src\fma4200_project\config.py'`
+  - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_predictive_modeling.py'`
+  - `& 'd:\MG\anaconda3\python.exe' 'scripts\build_final_report.py'`
+  - `& 'd:\MG\anaconda3\python.exe' 'scripts\audit_and_prepare_submission.py'`
 - Confirmed the cleaned monthly sample spans `1926-07-31` to `2026-01-31`.
 - Confirmed the cleaned dataset contains `1195` monthly observations and `6` value-weighted portfolio return columns.
 - Confirmed duplicate-date rows: `0`.
@@ -223,12 +238,13 @@
 - Completed a strict rubric audit and generated:
   - `report/rubric_checklist.md`
   - `report/audit_report.md`
+  - `report/guidance_lecture_mapping.md`
   - `SUBMISSION_RUNBOOK.md`
   - `submission_ready/`
   - `submission_ready.zip`
 - Confirmed the audit prep step finds `0` broken local Markdown links across the core report-facing files.
 - Confirmed the refreshed `submission_ready/` bundle no longer contains stale hand-rolled GARCH language after the Section 3 synchronization pass.
-- Confirmed the current report main body has `2823` words and the generated PDF has a page-object heuristic count of `15`, which is comfortably below the `25`-page assignment limit.
+- Confirmed the current report main body has `3030` words and the generated PDF has a page-object heuristic count of `16`, which is comfortably below the `25`-page assignment limit.
 
 ## 3. What Remains
 

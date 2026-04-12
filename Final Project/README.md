@@ -2,6 +2,14 @@
 
 This project analyzes six Kenneth French value-weighted portfolios using the course-provided `Data.csv` file. The reproducible setup in this folder now covers environment verification, data cleaning, univariate return modeling, exogenous predictive modeling with cached Fama-French monthly factors, and the full trading-strategies stage including VAR analysis, cointegration-based stat-arb, and rolling mean-variance backtests.
 
+## Canonical Report Sources
+
+- `report/sections/03_individual_returns_modeling.md` and `report/sections/appendix_individual_returns_modeling.md` are the canonical Section 3 narrative sources.
+- Those Section 3 files are written by the shared writers in `src/fma4200_project/univariate_modeling.py`.
+- `src/fma4200_project/predictive_modeling.py` extends the same Section 3 source instead of maintaining a separate parallel draft.
+- `src/fma4200_project/final_report_builder.py` now reads the canonical Section 3 and conclusions source files when building `report/final_report.md`, which reduces draft-versus-final drift.
+- `report/guidance_lecture_mapping.md` records how the assignment guidance maps to lecture content, code, outputs, and final-report sections.
+
 ## Canonical Structure
 
 - `src/fma4200_project/`: reusable project code for environment checks, data cleaning, and modeling
@@ -40,6 +48,7 @@ The raw Kenneth French monthly value-weighted section reports returns in **perce
 - Final integrated report PDF: `report/final_report.pdf`
 - Final appendices: `report/final_appendices.md`
 - Export notes: `report/export_notes.md`
+- Guidance and lecture mapping: `report/guidance_lecture_mapping.md`
 - Clean bibliography: `report/references.md`
 - Reference verification notes: `report/references_verification.md`
 - Rubric checklist: `report/rubric_checklist.md`
@@ -111,6 +120,7 @@ The current pipeline saves:
 - date coverage, duplicate, missingness, and descriptive-statistics tables,
 - baseline portfolio figures,
 - per-portfolio univariate diagnostics and model summaries,
+- MLE-based Normal, Student-t, and NIG distribution-fit comparisons plus `arch`-based Gaussian, Student-t, Skewed Student-t, and GED GARCH comparisons,
 - combined ARIMA and GARCH comparison tables, and
 - a cached Fama-French monthly factor file,
 - a monthly predictor dataset with lagged factor and internal signals,

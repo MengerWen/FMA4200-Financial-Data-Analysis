@@ -22,8 +22,8 @@ The project was audited against every requirement in `Guidance.md` and rebuilt b
 - Data dictionary exists: `True`
 - Markdown local-link checks run: `6`
 - Broken local Markdown links found: `0`
-- Main-body word count in `report/final_report.md`: `2823`
-- PDF page-object heuristic count for `report/final_report.pdf`: `15`
+- Main-body word count in `report/final_report.md`: `3030`
+- PDF page-object heuristic count for `report/final_report.pdf`: `16`
 
 ## Residual Risks
 

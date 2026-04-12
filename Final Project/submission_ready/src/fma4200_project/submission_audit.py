@@ -17,6 +17,7 @@ from .config import (
     FINAL_REPORT_MD_PATH,
     FINAL_REPORT_NOTEBOOK_PATH,
     FINAL_REPORT_PDF_PATH,
+    GUIDANCE_LECTURE_MAPPING_PATH,
     OUTPUT_DIR,
     PROJECT_STATUS_PATH,
     README_PATH,
@@ -226,6 +227,7 @@ def _prepare_submission_ready() -> None:
         REFERENCE_VERIFICATION_PATH,
         RUBRIC_CHECKLIST_PATH,
         AUDIT_REPORT_PATH,
+        GUIDANCE_LECTURE_MAPPING_PATH,
     ]
     for file_path in report_files:
         _copy_file(file_path, SUBMISSION_READY_DIR / "report" / file_path.name)
@@ -270,6 +272,7 @@ def run_audit_and_prepare_submission() -> dict[str, object]:
         EXPORT_NOTES_PATH,
         RUNBOOK_PATH,
         RUBRIC_CHECKLIST_PATH,
+        GUIDANCE_LECTURE_MAPPING_PATH,
     ]
     link_results = _audit_markdown_links(markdown_files)
     word_count = _main_body_word_count(FINAL_REPORT_MD_PATH)

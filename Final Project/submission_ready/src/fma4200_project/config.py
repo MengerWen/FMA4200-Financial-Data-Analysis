@@ -4,8 +4,14 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+WORKSPACE_ROOT = ROOT.parent
 RAW_DATA_PATH = ROOT / "Data.csv"
 GUIDANCE_PATH = ROOT / "Guidance.md"
+LECTURE_SLIDES_DIR = WORKSPACE_ROOT / "Lecture Slides"
+LECTURE_01_PATH = LECTURE_SLIDES_DIR / "1_Univariate Data Analysis.md"
+LECTURE_02_PATH = LECTURE_SLIDES_DIR / "2_Time Series Data Analysis.md"
+LECTURE_03_PATH = LECTURE_SLIDES_DIR / "3_Multivariate Time Series Data Analysis.md"
+LECTURE_04_PATH = LECTURE_SLIDES_DIR / "4_Portfolio Optimization.md"
 
 SRC_DIR = ROOT / "src"
 SCRIPTS_DIR = ROOT / "scripts"
@@ -26,6 +32,8 @@ ENVIRONMENT_USED_PATH = ROOT / "environment_used.md"
 RUNBOOK_PATH = ROOT / "SUBMISSION_RUNBOOK.md"
 
 AUTOGEN_DATA_SNAPSHOT_PATH = REPORT_SECTIONS_DIR / "_02_data_snapshot_autogen.md"
+SECTION_01_PATH = REPORT_SECTIONS_DIR / "01_introduction.md"
+SECTION_02_PATH = REPORT_SECTIONS_DIR / "02_data_source_processing.md"
 ENVIRONMENT_LOG_PATH = LOGS_DIR / "environment_check.txt"
 PIPELINE_LOG_PATH = LOGS_DIR / "pipeline_run.log"
 
@@ -62,6 +70,7 @@ TRADING_MODELS_DIR = MODELS_DIR / "trading_strategies"
 
 SECTION_03_PATH = REPORT_SECTIONS_DIR / "03_individual_returns_modeling.md"
 SECTION_04_PATH = REPORT_SECTIONS_DIR / "04_trading_strategies.md"
+SECTION_05_PATH = REPORT_SECTIONS_DIR / "05_conclusions.md"
 APPENDIX_INDIVIDUAL_PATH = REPORT_SECTIONS_DIR / "appendix_individual_returns_modeling.md"
 FINAL_REPORT_MD_PATH = REPORT_DIR / "final_report.md"
 FINAL_REPORT_NOTEBOOK_PATH = REPORT_DIR / "final_report.ipynb"
@@ -71,6 +80,7 @@ FINAL_APPENDICES_PATH = REPORT_DIR / "final_appendices.md"
 EXPORT_NOTES_PATH = REPORT_DIR / "export_notes.md"
 REFERENCES_PATH = REPORT_DIR / "references.md"
 REFERENCE_VERIFICATION_PATH = REPORT_DIR / "references_verification.md"
+GUIDANCE_LECTURE_MAPPING_PATH = REPORT_DIR / "guidance_lecture_mapping.md"
 RUBRIC_CHECKLIST_PATH = REPORT_DIR / "rubric_checklist.md"
 AUDIT_REPORT_PATH = REPORT_DIR / "audit_report.md"
 SUBMISSION_MANIFEST_PATH = ROOT / "submission_ready_manifest.txt"

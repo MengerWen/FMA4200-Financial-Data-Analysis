@@ -4,7 +4,7 @@ Dep. Variable:             target_pct   R-squared:                       0.044
 Model:                            OLS   Adj. R-squared:                  0.037
 Method:                 Least Squares   F-statistic:                     2.880
 Date:                Sun, 12 Apr 2026   Prob (F-statistic):            0.00228
-Time:                        12:14:49   Log-Likelihood:                -3948.6
+Time:                        20:35:20   Log-Likelihood:                -3948.6
 No. Observations:                1183   AIC:                             7917.
 Df Residuals:                    1173   BIC:                             7968.
 Df Model:                           9                                         

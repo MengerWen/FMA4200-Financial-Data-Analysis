@@ -14,7 +14,6 @@ from statsmodels.stats.diagnostic import acorr_ljungbox
 from statsmodels.tsa.arima.model import ARIMA
 
 from .config import (
-    APPENDIX_INDIVIDUAL_PATH,
     FAMA_FRENCH_FACTORS_PATH,
     PERCENT_COLUMNS,
     PORTFOLIO_GARCH_SUMMARY_PATH,
@@ -29,10 +28,15 @@ from .config import (
     PREDICTIVE_TABLES_DIR,
     PREDICTOR_DATASET_PATH,
     PREDICTOR_SOURCE_SUMMARY_PATH,
-    SECTION_03_PATH,
 )
 from .data_pipeline import ensure_directories
-from .univariate_modeling import load_clean_returns, portfolio_label, portfolio_slug
+from .univariate_modeling import (
+    load_clean_returns,
+    portfolio_label,
+    portfolio_slug,
+    write_appendix as write_individual_returns_appendix,
+    write_section_03 as write_individual_returns_section,
+)
 
 
 OUT_OF_SAMPLE_MONTHS = 120
@@ -722,124 +726,6 @@ def estimate_portfolio_predictive_models(
     }
 
 
-def write_section_03(
-    test_summary: pd.DataFrame,
-    model_summary: pd.DataFrame,
-    garch_summary: pd.DataFrame,
-    predictive_summary: pd.DataFrame,
-) -> None:
-    strongest_rejected_normality = test_summary.sort_values("jarque_bera_stat", ascending=False).iloc[0]
-    highest_persistence = garch_summary.sort_values("persistence", ascending=False).iloc[0]
-    weak_residual_fit = model_summary.loc[model_summary["residual_lb_pvalue_lag_12"] < 0.05, "portfolio"].tolist()
-    weak_residual_text = ", ".join(portfolio_label(portfolio) for portfolio in weak_residual_fit)
-
-    preferred_predictive = predictive_summary.loc[predictive_summary["is_preferred_predictive"]].copy()
-    benchmark_rows = predictive_summary.loc[predictive_summary["is_benchmark"], ["portfolio", "rmse", "mae"]].rename(
-        columns={"rmse": "benchmark_rmse", "mae": "benchmark_mae"}
-    )
-    preferred_predictive = preferred_predictive.merge(benchmark_rows, on="portfolio", how="left")
-    preferred_predictive["rmse_improvement_pct"] = (
-        100.0 * (preferred_predictive["benchmark_rmse"] - preferred_predictive["rmse"]) / preferred_predictive["benchmark_rmse"]
-    )
-
-    beating_benchmark = preferred_predictive.loc[preferred_predictive["rmse_improvement_pct"] > 0.0].copy()
-    source_value = (
-        predictor_source_label(str(preferred_predictive["predictor_source"].mode().iloc[0]))
-        if not preferred_predictive.empty
-        else "unknown"
-    )
-    common_family = (
-        preferred_predictive["model_label"].mode().iloc[0] if not preferred_predictive.empty else "Benchmark ARIMA"
-    )
-    best_gain_row = preferred_predictive.sort_values("rmse_improvement_pct", ascending=False).iloc[0]
-
-    section_lines = [
-        "# Modeling the Individual Portfolio Returns",
-        "",
-        "## Univariate Benchmarks",
-        "",
-        "Section 3 begins with the univariate benchmark workflow for each of the six cleaned monthly portfolio return series. Each series was examined with time-series plots, histogram-and-density plots, QQ plots, ACF/PACF, Jarque-Bera normality tests, ADF and KPSS stationarity checks, residual Ljung-Box diagnostics, and ARCH-LM tests. Those diagnostics support modeling the returns in levels while still showing clear non-normality and volatility clustering across the panel.",
-        "",
-        f"The strongest Jarque-Bera rejection still appears in **{portfolio_label(strongest_rejected_normality['portfolio'])}**, while the most persistent volatility process remains **{portfolio_label(highest_persistence['portfolio'])}** with GARCH persistence **{highest_persistence['persistence']:.3f}**. Low-order ARIMA models remain sensible mean benchmarks, but the clearest remaining residual autocorrelation still shows up in **{weak_residual_text}**, which motivates adding exogenous predictive information rather than relying only on own-history dynamics.",
-        "",
-        "## Exogenous Predictors and Predictive Design",
-        "",
-        f"The predictive extension now augments the benchmark models with lagged exogenous predictors. In the current environment, the project was able to use **{source_value}** monthly Fama-French factor data merged to the same sample and cached locally for reproducibility. The authoritative factor block contributes lagged market excess return, SMB, HML, and the risk-free rate. The project also constructs internal fallback and supplemental signals from the six available portfolios, including lagged size and value spreads, a 12-month rolling market-volatility proxy, a 12-month market-momentum proxy, and a drawdown proxy. This design keeps the workflow usable even if future reruns cannot reach the external data source, because both the cached factor file and the internal predictors live inside the project folder.",
-        "",
-        "For each portfolio, three model classes are compared:",
-        "",
-        "1. The selected univariate ARIMA benchmark from the earlier step.",
-        "2. An ARIMAX specification that keeps the same ARIMA order but adds lagged exogenous predictors.",
-        "3. A predictive regression with lagged returns plus lagged exogenous predictors.",
-        "",
-        "Model comparison is explicit rather than informal. Full-sample fit is judged with AIC, BIC, residual Ljung-Box diagnostics, and the share of non-constant terms that are statistically significant at the 5% level. Forecast performance is judged with a 120-month expanding-window exercise using one-step-ahead monthly refits. The main out-of-sample metrics are RMSE, MAE, and directional accuracy.",
-        "",
-        "## Predictive Results",
-        "",
-        f"The most common preferred predictive family across the six portfolios is **{common_family}**. Out-of-sample gains are modest rather than dramatic, which is consistent with the literature on return predictability at the monthly horizon. Even so, **{len(beating_benchmark)} of 6** portfolios show an RMSE improvement relative to the benchmark when the best predictive extension is used. The strongest improvement occurs for **{portfolio_label(best_gain_row['portfolio'])}**, where the preferred predictive model changes RMSE by **{best_gain_row['rmse_improvement_pct']:.2f}%** relative to the benchmark.",
-        "",
-        "These results should be interpreted cautiously. The predictive models add economic structure and sometimes improve forecast ranking or directional information, but the benchmark ARIMA models remain difficult to beat consistently. That pattern is informative in itself: the conditional mean of long-run monthly portfolio returns appears only weakly predictable, while the stronger and more stable evidence in the project still lies in distributional shape and conditional volatility.",
-        "",
-        "## Saved Outputs",
-        "",
-        "The predictive-modeling artifacts are saved under:",
-        "",
-        "- `data/processed/predictor_dataset_monthly.csv`",
-        "- `data/processed/predictor_source_summary.csv`",
-        "- `output/figures/predictive_individual_returns/<portfolio>/`",
-        "- `output/tables/predictive_individual_returns/<portfolio>/`",
-        "- `output/models/predictive_individual_returns/<portfolio>/`",
-        "- `output/tables/predictive_individual_returns/predictive_model_summary.csv`",
-        "- `output/tables/predictive_individual_returns/predictive_forecast_metrics.csv`",
-        "- `output/tables/predictive_individual_returns/predictive_forecasts.csv`",
-        "",
-        "The appendix extends the portfolio-by-portfolio notes with predictive-model selections, key terms, and benchmark-versus-predictive forecast comparisons.",
-    ]
-    SECTION_03_PATH.write_text("\n".join(section_lines) + "\n", encoding="utf-8")
-
-
-def write_appendix(
-    test_summary: pd.DataFrame,
-    model_summary: pd.DataFrame,
-    garch_summary: pd.DataFrame,
-    predictive_summary: pd.DataFrame,
-) -> None:
-    appendix_lines = [
-        "# Appendix: Individual Portfolio Modeling Details",
-        "",
-        "This appendix records concise portfolio-by-portfolio notes from both the univariate benchmark stage and the exogenous predictive-modeling extension.",
-        "",
-    ]
-
-    benchmark_lookup = predictive_summary.loc[predictive_summary["is_benchmark"]].set_index("portfolio")
-    preferred_lookup = predictive_summary.loc[predictive_summary["is_preferred_predictive"]].set_index("portfolio")
-
-    for portfolio in PERCENT_COLUMNS:
-        test_row = test_summary.loc[test_summary["portfolio"] == portfolio].iloc[0]
-        model_row = model_summary.loc[model_summary["portfolio"] == portfolio].iloc[0]
-        garch_row = garch_summary.loc[garch_summary["portfolio"] == portfolio].iloc[0]
-        benchmark_row = benchmark_lookup.loc[portfolio]
-        preferred_row = preferred_lookup.loc[portfolio]
-        rmse_improvement = 100.0 * (benchmark_row["rmse"] - preferred_row["rmse"]) / benchmark_row["rmse"]
-
-        appendix_lines.extend(
-            [
-                f"## {portfolio_label(portfolio)}",
-                "",
-                f"- Distribution: mean = {test_row['mean_pct']:.3f}% per month, volatility = {test_row['std_pct']:.3f}% per month, skewness = {test_row['skewness']:.3f}, kurtosis = {test_row['kurtosis']:.3f}.",
-                f"- Benchmark ARIMA: {model_row['selected_arima_order']} with residual Ljung-Box p-value at lag 12 = {model_row['residual_lb_pvalue_lag_12']:.4f}.",
-                f"- GARCH(1,1): persistence = {garch_row['persistence']:.4f}, standardized-residual ARCH-LM p-value = {garch_row['std_resid_arch_lm_pvalue']:.4f}.",
-                f"- Predictive benchmark forecast metrics: RMSE = {benchmark_row['rmse']:.4f}, MAE = {benchmark_row['mae']:.4f}, directional accuracy = {benchmark_row['directional_accuracy']:.3f}.",
-                f"- Preferred predictive model: {preferred_row['model_label']} with RMSE = {preferred_row['rmse']:.4f}, MAE = {preferred_row['mae']:.4f}, directional accuracy = {preferred_row['directional_accuracy']:.3f}, and RMSE improvement vs benchmark = {rmse_improvement:.2f}%.",
-                f"- Most informative predictive terms: {preferred_row['top_significant_terms']}",
-                f"- Saved predictive outputs: `output/figures/predictive_individual_returns/{portfolio_slug(portfolio)}/`, `output/tables/predictive_individual_returns/{portfolio_slug(portfolio)}/`, and `output/models/predictive_individual_returns/{portfolio_slug(portfolio)}/`.",
-                "",
-            ]
-        )
-
-    APPENDIX_INDIVIDUAL_PATH.write_text("\n".join(appendix_lines) + "\n", encoding="utf-8")
-
-
 def run_predictive_modeling_pipeline() -> dict[str, object]:
     ensure_directories()
     logger = configure_predictive_logger()
@@ -882,8 +768,8 @@ def run_predictive_modeling_pipeline() -> dict[str, object]:
     save_dataframe(predictive_metrics, PREDICTIVE_FORECAST_METRICS_PATH)
     save_dataframe(predictive_forecasts, PREDICTIVE_FORECASTS_PATH)
 
-    write_section_03(test_summary, model_summary, garch_summary, predictive_summary)
-    write_appendix(test_summary, model_summary, garch_summary, predictive_summary)
+    write_individual_returns_section(test_summary, model_summary, garch_summary, predictive_summary)
+    write_individual_returns_appendix(test_summary, model_summary, garch_summary, predictive_summary)
 
     logger.info("Predictive modeling pipeline completed successfully.")
     return {

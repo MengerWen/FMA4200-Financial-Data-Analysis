@@ -32,3 +32,9 @@
 - `math`
 - `textwrap`
 - `subprocess`
+
+## Project Notes
+
+- Section 3 now uses `arch==8.0.0` as the canonical volatility implementation.
+- The marginal distribution comparisons in Section 3 rely on `scipy.stats` MLE routines for `Normal`, `Student-t`, and `norminvgauss` (`NIG`) fits.
+- No packages were installed, upgraded, or removed during this project state.
