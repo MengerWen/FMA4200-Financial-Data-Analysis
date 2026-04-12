@@ -14,6 +14,8 @@
 - `pandas_datareader==0.10.0`
 - `cvxpy==1.6.6`
 - `sklearn==1.5.1`
+- `nbformat==5.10.4`
+- `nbconvert==7.16.4`
 
 ## Standard Library Modules Used
 
@@ -27,3 +29,5 @@
 - `platform`
 - `importlib.metadata`
 - `math`
+- `textwrap`
+- `subprocess`

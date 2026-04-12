@@ -114,6 +114,18 @@
   - `output/models/trading_strategies/strategy_rules.md`
 - Added the Section 4 report draft:
   - `report/sections/04_trading_strategies.md`
+- Added the final integrated report build:
+  - `src/fma4200_project/final_report_builder.py`
+  - `scripts/build_final_report.py`
+  - updated `scripts/run_pipeline.py` so the top-level pipeline now builds the final report package after the analytical stages
+- Added final report outputs:
+  - `report/sections/05_conclusions.md`
+  - `report/final_report.md`
+  - `report/final_report.ipynb`
+  - `report/final_report.html`
+  - `report/final_appendices.md`
+  - `report/export_notes.md`
+  - `logs/final_report.log`
 
 ## 2. What Ran Successfully
 
@@ -132,6 +144,7 @@
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_individual_modeling.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_predictive_modeling.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_trading_strategies.py'`
+  - `& 'd:\MG\anaconda3\python.exe' 'scripts\build_final_report.py'`
   - `& 'd:\MG\anaconda3\python.exe' 'scripts\run_pipeline.py'`
 - Confirmed the cleaned monthly sample spans `1926-07-31` to `2026-01-31`.
 - Confirmed the cleaned dataset contains `1195` monthly observations and `6` value-weighted portfolio return columns.
@@ -170,11 +183,18 @@
 - Confirmed the improved plug-in strategy materially reduces trading intensity:
   - baseline plug-in average turnover: `0.0438`
   - improved plug-in average turnover: `0.0034`
+- Built the final integrated report package successfully:
+  - Markdown source at `report/final_report.md`
+  - notebook source at `report/final_report.ipynb`
+  - HTML export at `report/final_report.html`
+  - appendix file at `report/final_appendices.md`
+  - conclusion section draft at `report/sections/05_conclusions.md`
+- Confirmed automatic PDF export is not supported in the current environment and saved the exact manual export step in `report/export_notes.md`.
 
 ## 3. What Remains
 
-- Write the final conclusions section and integrate Sections 1 through 4 into the final submitted report format.
-- Decide whether to retain the current cointegration stat-arb specification as a negative result or iterate on alternative spread construction / execution rules.
+- If a submission PDF is required immediately, open `report/final_report.html` in a browser and print it to `report/final_report.pdf` as documented in `report/export_notes.md`.
+- Optionally iterate on report styling or strategy refinements, but the current analytical and reporting requirements in `Guidance.md` are now covered by the saved project outputs.
 
 ## 4. Blockers or Assumptions
 
@@ -188,3 +208,4 @@
 - The predictive out-of-sample evaluation now uses monthly expanding-window refits for one-step-ahead forecasts. This is computationally heavier than a fixed-parameter walk-forward update, but it is stable with the available toolchain and avoids relying on fragile `statsmodels` state-append behavior.
 - The full-sample Johansen result supports one cointegration relation on log wealth, but the rolling rank is not stable across history. The saved stat-arb backtest should therefore be interpreted as an honest empirical result rather than evidence of a robust production strategy.
 - The current plug-in mean-variance strategy uses no-short-sale constraints for numerical stability and practical interpretability. The improved variant further adds Ledoit-Wolf shrinkage, weight bounds, and a turnover penalty.
+- `nbformat` and `nbconvert` are available and were used to generate the notebook and HTML report sources. A direct PDF export was not attempted because the required non-Python PDF toolchain is not present on PATH in this environment; the exact checked tools are recorded in `report/export_notes.md`.

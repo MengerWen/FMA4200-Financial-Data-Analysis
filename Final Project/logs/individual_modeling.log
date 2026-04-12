@@ -1,8 +1,8 @@
-2026-04-12 00:06:56,544 | INFO | Starting individual portfolio modeling pipeline.
-2026-04-12 00:06:56,548 | INFO | Analyzing small_lobm_vwret_pct
-2026-04-12 00:07:00,272 | INFO | Analyzing me1_bm2_vwret_pct
-2026-04-12 00:07:04,315 | INFO | Analyzing small_hibm_vwret_pct
-2026-04-12 00:07:07,774 | INFO | Analyzing big_lobm_vwret_pct
-2026-04-12 00:07:11,234 | INFO | Analyzing me2_bm2_vwret_pct
-2026-04-12 00:07:14,408 | INFO | Analyzing big_hibm_vwret_pct
-2026-04-12 00:07:18,024 | INFO | Individual portfolio modeling pipeline completed successfully.
+2026-04-12 12:09:54,022 | INFO | Starting individual portfolio modeling pipeline.
+2026-04-12 12:09:54,027 | INFO | Analyzing small_lobm_vwret_pct
+2026-04-12 12:09:57,959 | INFO | Analyzing me1_bm2_vwret_pct
+2026-04-12 12:10:02,121 | INFO | Analyzing small_hibm_vwret_pct
+2026-04-12 12:10:05,629 | INFO | Analyzing big_lobm_vwret_pct
+2026-04-12 12:10:09,269 | INFO | Analyzing me2_bm2_vwret_pct
+2026-04-12 12:10:12,642 | INFO | Analyzing big_hibm_vwret_pct
+2026-04-12 12:10:16,478 | INFO | Individual portfolio modeling pipeline completed successfully.

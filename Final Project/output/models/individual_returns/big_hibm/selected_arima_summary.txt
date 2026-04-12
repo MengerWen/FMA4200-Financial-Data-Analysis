@@ -3,7 +3,7 @@
 Dep. Variable:     big_hibm_vwret_pct   No. Observations:                 1195
 Model:                 ARIMA(2, 0, 2)   Log Likelihood               -4007.524
 Date:                Sun, 12 Apr 2026   AIC                           8027.048
-Time:                        00:07:18   BIC                           8057.549
+Time:                        12:10:16   BIC                           8057.549
 Sample:                             0   HQIC                          8038.541
                                - 1195                                         
 Covariance Type:                  opg                                         

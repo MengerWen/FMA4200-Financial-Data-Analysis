@@ -33,6 +33,12 @@ The raw Kenneth French monthly value-weighted section reports returns in **perce
 - Individual-modeling report draft: `report/sections/03_individual_returns_modeling.md`
 - Modeling appendix: `report/sections/appendix_individual_returns_modeling.md`
 - Trading-strategies report draft: `report/sections/04_trading_strategies.md`
+- Conclusions section draft: `report/sections/05_conclusions.md`
+- Final integrated report source: `report/final_report.md`
+- Final integrated report notebook: `report/final_report.ipynb`
+- Final integrated report HTML: `report/final_report.html`
+- Final appendices: `report/final_appendices.md`
+- Export notes: `report/export_notes.md`
 - Cached Fama-French factors: `data/processed/fama_french_3f_monthly.csv`
 - Predictor panel: `data/processed/predictor_dataset_monthly.csv`
 - Predictor source summary: `data/processed/predictor_source_summary.csv`
@@ -70,6 +76,12 @@ Run only the trading-strategies stage:
 & 'd:\MG\anaconda3\python.exe' 'scripts\run_trading_strategies.py'
 ```
 
+Build only the final integrated report package:
+
+```powershell
+& 'd:\MG\anaconda3\python.exe' 'scripts\build_final_report.py'
+```
+
 Run the full current pipeline:
 
 ```powershell
@@ -95,6 +107,9 @@ The current pipeline saves:
 - statistical-arbitrage signal and backtest files,
 - efficient-frontier tables and figures,
 - rolling strategy weights and performance comparisons for equal-weight and mean-variance portfolios, and
-- report drafts for Sections 2 through 4.
+- report drafts for Sections 2 through 5,
+- a final integrated Markdown report,
+- a final report notebook and HTML export, and
+- export notes documenting the manual browser print-to-PDF step required in the current environment.
 
 The canonical current output folder is `output/`.

@@ -49,6 +49,8 @@ def write_environment_files(package_versions: list[tuple[str, str]]) -> None:
             "- `platform`",
             "- `importlib.metadata`",
             "- `math`",
+            "- `textwrap`",
+            "- `subprocess`",
         ]
     )
     ENVIRONMENT_USED_PATH.write_text("\n".join(environment_lines) + "\n", encoding="utf-8")

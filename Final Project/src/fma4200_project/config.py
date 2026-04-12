@@ -61,9 +61,16 @@ TRADING_MODELS_DIR = MODELS_DIR / "trading_strategies"
 SECTION_03_PATH = REPORT_SECTIONS_DIR / "03_individual_returns_modeling.md"
 SECTION_04_PATH = REPORT_SECTIONS_DIR / "04_trading_strategies.md"
 APPENDIX_INDIVIDUAL_PATH = REPORT_SECTIONS_DIR / "appendix_individual_returns_modeling.md"
+FINAL_REPORT_MD_PATH = REPORT_DIR / "final_report.md"
+FINAL_REPORT_NOTEBOOK_PATH = REPORT_DIR / "final_report.ipynb"
+FINAL_REPORT_HTML_PATH = REPORT_DIR / "final_report.html"
+FINAL_REPORT_PDF_PATH = REPORT_DIR / "final_report.pdf"
+FINAL_APPENDICES_PATH = REPORT_DIR / "final_appendices.md"
+EXPORT_NOTES_PATH = REPORT_DIR / "export_notes.md"
 INDIVIDUAL_MODELING_LOG_PATH = LOGS_DIR / "individual_modeling.log"
 PREDICTIVE_MODELING_LOG_PATH = LOGS_DIR / "predictive_modeling.log"
 TRADING_STRATEGIES_LOG_PATH = LOGS_DIR / "trading_strategies.log"
+FINAL_REPORT_LOG_PATH = LOGS_DIR / "final_report.log"
 
 PORTFOLIO_MODEL_COMPARISON_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_model_comparison_summary.csv"
 PORTFOLIO_TEST_SUMMARY_PATH = INDIVIDUAL_TABLES_DIR / "portfolio_statistical_test_summary.csv"
@@ -85,7 +92,18 @@ STRATEGY_WEIGHTS_PATH = TRADING_TABLES_DIR / "strategy_weights.csv"
 EFFICIENT_FRONTIER_POINTS_PATH = TRADING_TABLES_DIR / "efficient_frontier_points.csv"
 MULTIVARIATE_WEALTH_PANEL_PATH = PROCESSED_DATA_DIR / "portfolio_wealth_indices.csv"
 
-REQUIRED_IMPORTS = ("numpy", "pandas", "matplotlib", "scipy", "statsmodels", "pandas_datareader", "cvxpy", "sklearn")
+REQUIRED_IMPORTS = (
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "scipy",
+    "statsmodels",
+    "pandas_datareader",
+    "cvxpy",
+    "sklearn",
+    "nbformat",
+    "nbconvert",
+)
 
 RAW_TO_PERCENT_COLUMNS = {
     "SMALL LoBM": "small_lobm_vwret_pct",
